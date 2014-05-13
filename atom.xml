@@ -4,7 +4,7 @@
   <title><![CDATA[Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-05-13T00:41:44-04:00</updated>
+  <updated>2014-05-13T01:15:19-04:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -12,5 +12,14 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Hello World!]]></title>
+    <link href="http://blog.alexrothberg.com/2014/05/13/hello-world/"/>
+    <updated>2014-05-13T00:56:09-04:00</updated>
+    <id>http://blog.alexrothberg.com/2014/05/13/hello-world</id>
+    <content type="html"><![CDATA[<p>This is my <a href="https://en.wikipedia.org/wiki/Hello_world_program">inaugural, requisite</a> post on my personal blog.</p>
+]]></content>
+  </entry>
   
 </feed>
