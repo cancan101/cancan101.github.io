@@ -1,0 +1,24 @@
+---
+layout: post
+title: "Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees"
+date: 2014-05-13 11:00:12 -0400
+comments: true
+categories: trading
+keywords: trading,equities,stocks,markets,liquidity,Brad Katsuyama,Flash Boys,Michael Lewis 
+---
+From Michael Lewis’ [The Wolf Hunters of Wall Street](http://www.nytimes.com/2014/04/06/magazine/flash-boys-michael-lewis.html):
+
+>Before RBC acquired this supposed state-of-the-art electronic-trading firm, Katsuyama’s computers worked as he expected them to. Suddenly they didn’t. It used to be that when his trading screens showed 10,000 shares of Intel offered at $22 a share, it meant that he could buy 10,000 shares of Intel for $22 a share. He had only to push a button. By the spring of 2007, however, when he pushed the button to complete a trade, the offers would vanish. In his seven years as a trader, he had always been able to look at the screens on his desk and see the stock market. **Now the market as it appeared on his screens was an illusion**.
+
+For someone making $1.5-million-a-year running RBC’s  electronic-trading operation, I am surprised how little Brad understands about liquidity. I don’t just mean the complicated American equity markets; I mean liquidity in general. A simple analogy illustrates why the market is in fact not an illusion and how a similar experience can happen in other markets.
+
+Let’s say you are looking to buy airlines tickets to fly your entire extended family, all 30 of them, from Toronto to New York City. The first thing you, as a bargain hunting traveler do, is log onto your favorite travel agent site (be it Expedia, Travelocity, etc). You search for the cheapest fare and get ready to buy. Unfortunately most sites allow you to buy only six tickets at a time. So now you as a savvy shopper open your next four favorite travel agent sites and find the same flight. Assuming you are lucky (and the sites have access to the same fares), you sees the same price on all sites. Now it’s go time! You successfully buy six tickets on the first site and move on to the second site. Once again you are successful.  Great, 12 tickets down 18 to go. 
+
+Now when you try to checkout on the third site, you receive a strange error message: “Unable to complete checkout. Please search again.” You scratch your head and hit the refresh button. The flight results reload, but the rates have gone up! You decide to move on to the fourth site and see what happens there. The same! You aren’t able to buy the tickets from your initial search and are once again presented with a higher fare.
+
+So what happened? The airline has a bunch of seats its want to sell. Since it’s a profit maximizing corporation, it employs “revenue management” to make as much money as possible on these seats. In the case of my analogy the airline has 12 seats at some low price it is trying to sell. It offers another batch at a higher price. The problem is there are only 12 seats at this price, but the airline doesn’t know which travel site its customers will use. So it offers those same 12 seats on _all_ of those sites.  Once those 12 are sold, a new batch of seats is offered at a higher price[^booking_code].
+
+[^booking_code]: The new fare is indicated on the ticket as a different [booking code](https://en.wikipedia.org/wiki/Fare_basis_code#Booking_codes).
+
+This is what Brad observers in the American equities market. There are give or take 12 public exchange whose aggregate offer he is observing. However like the airlines, market makers don’t know to which exchange liquidity takers (i.e. anyone that sends a market order) will go to. So they have some amount of stock they are comfortable selling, let’s say 2,000 shares. So they offer 1,000 shares on each of 12 venues. Now what Brad observes is a total of 12,000 shares offered. He tries to buy all 12,000 shares but ultimately only buys 2,000. This doesn’t mean the market is rigged, but rather his notion of liquidity, that is summing up everything he sees, is naive. It’s like trying to sum up the tickets offered on all of the travel websites and expecting the airline to sell all those tickets at the same price. This is even more crazy for an airline as the total number of tickets seen might exceeds the number of seats on the flight!
+
