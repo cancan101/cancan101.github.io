@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Rothberg Writes]]></title>
-  <link href="http://cancan101.github.io/atom.xml" rel="self"/>
-  <link href="http://cancan101.github.io/"/>
-  <updated>2014-05-13T00:25:34-04:00</updated>
-  <id>http://cancan101.github.io/</id>
+  <link href="http://blog.alexrothberg.com/atom.xml" rel="self"/>
+  <link href="http://blog.alexrothberg.com/"/>
+  <updated>2014-05-13T00:41:44-04:00</updated>
+  <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
     

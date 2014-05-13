@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://cancan101.github.io/</loc>
+        <loc>http://blog.alexrothberg.com/</loc>
         <lastmod>2014-05-12T22:45:30-04:00</lastmod>
     </url>
     <url>
-        <loc>http://cancan101.github.io/robots.txt</loc>
+        <loc>http://blog.alexrothberg.com/robots.txt</loc>
         <lastmod>2014-05-12T22:45:30-04:00</lastmod>
     </url>
     <url>
-        <loc>http://cancan101.github.io/blog/archives/</loc>
+        <loc>http://blog.alexrothberg.com/blog/archives/</loc>
         <lastmod>2014-05-12T22:45:30-04:00</lastmod>
     </url>
 </urlset>
