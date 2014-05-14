@@ -32,7 +32,15 @@ Currently meta tags for keywords and description are only generated on post page
 I addressed this issue in a [previous post]({% post_url 2014-05-13-hello-world blog-path %}). 
 
 ####post_url plugin
-In order to use `post_url` to allow intelligent linking between posts, I had to follow [this post](http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts). Since I wanted to ability to use named anchors, I made the following change:
+In order to use `post_url` to allow intelligent linking between posts, I had to follow [this post](http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts).
+
+Then I ran into this error message:
+```
+Liquid Exception: Tag '{% raw  %}{%%20post_url%202014-05-13-hello-world%20%}' was not properly terminated with regexp: /\%}/{% endraw %} in atom.xml
+```
+Following [this comment](https://github.com/davidfstr/rdiscount/issues/75#issuecomment-22607869) fixed that issue.
+
+Since I wanted the ability to use named anchors, I made the following change to the `post_url.rb` file:
 
 ```diff
 --- plugins/post_url.rb.orig	2014-05-14 13:33:36.938495170 -0400
