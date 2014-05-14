@@ -4,7 +4,8 @@ title: "Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees
 date: 2014-05-13 11:00:12 -0400
 comments: true
 categories: trading
-keywords: trading,equities,stocks,markets,liquidity,Brad Katsuyama,Flash Boys,Michael Lewis 
+keywords: trading, equities, stocks, markets, liquidity, Brad Katsuyama, Flash Boys, Michael Lewis, Wolf Hunters of Wall Street
+description: I explain Brad Katsuyama's observation of disappearing liquidity in American stock markets.
 ---
 From Michael Lewis’ [The Wolf Hunters of Wall Street](http://www.nytimes.com/2014/04/06/magazine/flash-boys-michael-lewis.html):
 
