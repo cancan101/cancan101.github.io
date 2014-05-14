@@ -5,12 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Hello World! - Rothberg Writes</title>
+  <title>Octopress Paper Cuts - Rothberg Writes</title>
   <meta name="author" content="Alex Rothberg">
 
   
-  <meta name="description" content="Introductory post to my blog.">
-  <meta name="keywords" content="Octopress, Hello World, subdomain, GitHub, CNAME">
+  <meta name="description" content="I explain bugs in Octopress and their solutions.">
+  <meta name="keywords" content="Octopress, CSS, anchors, post_url, gist, GitHub, alignment, bug, paper cuts,">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://blog.alexrothberg.com/2014/05/13/hello-world">
+  <link rel="canonical" href="http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Rothberg Writes" type="application/atom+xml">
@@ -80,7 +80,7 @@
   
   <header>
     
-      <h1 class="entry-title">Hello World!</h1>
+      <h1 class="entry-title">Octopress Paper Cuts</h1>
     
     
       <p class="meta">
@@ -96,31 +96,97 @@
   
 
 
-<time datetime="2014-05-13T00:56:09-04:00" pubdate data-updated="true">May 13<span>th</span>, 2014</time>
+<time datetime="2014-05-14T09:16:22-04:00" pubdate data-updated="true">May 14<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>This is my <a href="https://en.wikipedia.org/wiki/Hello_world_program">inaugural, requisite</a> post on my personal blog.</p>
+<div class="entry-content"><p>Now that I have started writing a few blog posts, I have come across a few <a href="https://en.wikipedia.org/wiki/Paper_cut_bug">&ldquo;paper cuts&rdquo;</a> with the (current) Octopress framework. Some quick background on Octopress: I am currently running the v2.0 version of Octopress which appears to have been released in <a href="http://octopress.org/2011/07/23/octopress-20-surfaces/">July 2011</a>. According to <a href="http://sasheldon.com/blog/2013/07/07/waiting-for-octopress-2-successor/">this blog</a>, the v2.1 version was scrapped in favor of a more significant v3.0. From the <a href="https://twitter.com/octopress">Twitter feed</a> and the <a href="https://github.com/octopress/octopress">GitHub page</a>, v3.0 seems to be in active development but not yet released. That leaves me with using v2.0 for the time being.</p>
 
-<p>I have chosen to run my blog with <a href="http://octopress.org/">Octopress</a> rather than WordPress or Blogger. Why? <a href="http://decodize.com/html/moving-from-wordpress-to-octopress/">This blogger</a> and <a href="http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/">this blogger</a> do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using <a href="https://pages.github.com/">GitHub Pages</a>.</p>
+<h4>Social Button Alignment</h4>
 
-<p>The guide <a href="http://octopress.org/docs/setup/">here</a> does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions <a href="http://octopress.org/docs/deploying/github/#custom_domains">here</a> to create a CNAME file and then <a href="http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames">adding a simple &ldquo;CNAME Record&rdquo; (an alias) on GoDaddy</a> was all it took for <a href="http://blog.alexrothberg.com">blog.alexrothberg.com</a> to direct to <a href="http://cancan101.github.io">cancan101.github.io</a>.</p>
+<p>The first issue that I came across was the vertical alignment of the &ldquo;social buttons&rdquo; on the bottom of each post. You can see the Facebook &ldquo;Like&rdquo; and &ldquo;Share&rdquo; buttons are lower than the Twitter and Google+ buttons:</p>
 
-<h3><a name="blog-path"></a>Simplifying the URL</h3>
+<p><img src="/images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png" title="Facebook Alignment Issue" ></p>
 
-<p>The default behavior for Octopress is to put the blog content in the <code>/blog/</code> subdirectory in the URL. Since I am using a subdomain for my namespacing, this proved to be awkward. The URLs started with: <code>http://blog.alexrothberg.com/blog/</code>. <a href="http://xit0.org/2013/04/remove-redundant-slash-blog-prefix-from-octopress-website/">This post</a> offers an easy solution. I also found this <a href="https://github.com/imathis/octopress/issues/464">GitHub Issue</a> discussing the issue. You can see changes I made <a href="https://github.com/cancan101/cancan101.github.io/commit/fa2778c349f7d60a16ed073c17702404d159206b">here</a>. When done with the edits I also had to <a href="http://octopress.org/docs/updating/">run <code>rake update_source</code></a>.</p>
+<p>which was fixed by following <a href="https://github.com/imathis/octopress/issues/176#issuecomment-6531879">this comment</a>.</p>
 
-<h3>Helpful Links</h3>
+<h4>Embedded Gist Rendering</h4>
 
-<ul>
-<li><a href="http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/">http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/</a></li>
-<li><a href="http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/">http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/</a></li>
-<li><a href="http://stackoverflow.com/questions/12328828/directory-structure-of-octopress">http://stackoverflow.com/questions/12328828/directory-structure-of-octopress</a></li>
-</ul>
+<p>The next issue was rendering of embedded <a href="https://gist.github.com/">Gists</a>. The rendered Gist look pretty crappy:</p>
 
+<p><img src="/images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png" title="Embedded Gist" ></p>
+
+<p>There are a number of people talking about the issue: <a href="http://devspade.com/blog/2013/08/06/fixing-gist-embeds-in-octopress/">here</a> and <a href="https://github.com/imathis/octopress/issues/847">here</a>. <a href="https://github.com/cancan101/cancan101.github.io/commit/d30d95694e5e4915b80e0082fb3ef1caac1f021b">The solution I ended up using was a combination of these plus some of my own CSS.</a></p>
+
+<h4>Meta Keywords and Description on Site Pages</h4>
+
+<p>Currently meta tags for keywords and description are only generated on post pages not on site level pages. A solution is offered <a href="http://qiang.hu/2013/04/octopress-seo-site-keywords-and-description.html">here</a> and a <a href="https://github.com/imathis/octopress/pull/1558">Pull Request</a>.</p>
+
+<h4>Blog in URL Path with Subdomain</h4>
+
+<p>I addressed this issue in a <a href="/2014/05/13/hello-world/#blog-path">previous post</a>.</p>
+
+<h4>post_url plugin</h4>
+
+<p>In order to use <code>post_url</code> to allow intelligent linking between posts, I had to follow <a href="http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts">this post</a>. Since I wanted to ability to use named anchors, I made the following change:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='diff'><span class='line'><span class="gd">--- plugins/post_url.rb.orig    2014-05-14 13:33:36.938495170 -0400</span>
+</span><span class='line'><span class="gi">+++ plugins/post_url.rb  2014-05-14 13:30:26.162496398 -0400</span>
+</span><span class='line'><span class="gu">@@ -25,8 +25,10 @@</span>
+</span><span class='line'>   class PostUrl &lt; Liquid::Tag
+</span><span class='line'>     def initialize(tag_name, post, tokens)
+</span><span class='line'>       super
+</span><span class='line'><span class="gi">+      post, anchor = post.strip.split</span>
+</span><span class='line'>       @orig_post = post.strip
+</span><span class='line'>       @post = PostComparer.new(@orig_post)
+</span><span class='line'><span class="gi">+      @anchor = anchor</span>
+</span><span class='line'>     end
+</span><span class='line'>
+</span><span class='line'>     def render(context)
+</span><span class='line'><span class="gu">@@ -34,7 +36,11 @@</span>
+</span><span class='line'>
+</span><span class='line'>       site.posts.each do |p|
+</span><span class='line'>         if @post == p
+</span><span class='line'><span class="gd">-          return p.url</span>
+</span><span class='line'><span class="gi">+          if @anchor.nil?</span>
+</span><span class='line'><span class="gi">+             return p.url</span>
+</span><span class='line'><span class="gi">+          else</span>
+</span><span class='line'><span class="gi">+             return p.url + &quot;#&quot; + @anchor</span>
+</span><span class='line'><span class="gi">+          end</span>
+</span><span class='line'>         end
+</span><span class='line'>       end
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I doubt these will be the last of the perp cuts that I uncover, so stay tuned for more fixes. I am starting to think <a href="http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html">this applies</a> to Octopress, but I still enjoy the challenge and the learning experience.</p>
 </div>
 
 
@@ -143,7 +209,7 @@
   
 
 
-<time datetime="2014-05-13T00:56:09-04:00" pubdate data-updated="true">May 13<span>th</span>, 2014</time>
+<time datetime="2014-05-14T09:16:22-04:00" pubdate data-updated="true">May 14<span>th</span>, 2014</time>
       
 
 <span class="categories">
@@ -157,7 +223,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2014/05/13/hello-world/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2014/05/13/hello-world/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -170,8 +236,8 @@
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/2014/05/13/fleeting-liquidity/" title="Previous Post: Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees">&laquo; Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees</a>
       
-        <a class="basic-alignment right" href="/2014/05/13/fleeting-liquidity/" title="Next Post: Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees">Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees &raquo;</a>
       
     </p>
   </footer>
@@ -271,8 +337,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://blog.alexrothberg.com/2014/05/13/hello-world/';
-        var disqus_url = 'http://blog.alexrothberg.com/2014/05/13/hello-world/';
+        var disqus_identifier = 'http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/';
+        var disqus_url = 'http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/';
         var disqus_script = 'embed.js';
       
     (function () {

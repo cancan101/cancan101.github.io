@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Blog | Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/categories/blog/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-05-14T02:45:37-04:00</updated>
+  <updated>2014-05-14T13:51:40-04:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -14,26 +14,86 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Octopress Paper Cuts]]></title>
+    <link href="http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/"/>
+    <updated>2014-05-14T09:16:22-04:00</updated>
+    <id>http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts</id>
+    <content type="html"><![CDATA[Now that I have started writing a few blog posts, I have come across a few ["paper cuts"](https://en.wikipedia.org/wiki/Paper_cut_bug) with the (current) Octopress framework. Some quick background on Octopress: I am currently running the v2.0 version of Octopress which appears to have been released in [July 2011](http://octopress.org/2011/07/23/octopress-20-surfaces/). According to [this blog](http://sasheldon.com/blog/2013/07/07/waiting-for-octopress-2-successor/), the v2.1 version was scrapped in favor of a more significant v3.0. From the [Twitter feed](https://twitter.com/octopress) and the [GitHub page](https://github.com/octopress/octopress), v3.0 seems to be in active development but not yet released. That leaves me with using v2.0 for the time being.
+
+####Social Button Alignment
+The first issue that I came across was the vertical alignment of the "social buttons" on the bottom of each post. You can see the Facebook "Like" and "Share" buttons are lower than the Twitter and Google+ buttons:
+
+<img src="/images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png" title="Facebook Alignment Issue" >
+
+which was fixed by following [this comment](https://github.com/imathis/octopress/issues/176#issuecomment-6531879).
+
+####Embedded Gist Rendering
+The next issue was rendering of embedded [Gists](https://gist.github.com/). The rendered Gist look pretty crappy:
+
+<img src="/images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png" title="Embedded Gist" >
+
+There are a number of people talking about the issue: [here](http://devspade.com/blog/2013/08/06/fixing-gist-embeds-in-octopress/) and [here](https://github.com/imathis/octopress/issues/847). [The solution I ended up using was a combination of these plus some of my own CSS.](https://github.com/cancan101/cancan101.github.io/commit/d30d95694e5e4915b80e0082fb3ef1caac1f021b)
+
+####Meta Keywords and Description on Site Pages
+Currently meta tags for keywords and description are only generated on post pages not on site level pages. A solution is offered [here](http://qiang.hu/2013/04/octopress-seo-site-keywords-and-description.html) and a [Pull Request](https://github.com/imathis/octopress/pull/1558).
+
+####Blog in URL Path with Subdomain
+I addressed this issue in a [previous post](/2014/05/13/hello-world/#blog-path). 
+
+####post_url plugin
+In order to use `post_url` to allow intelligent linking between posts, I had to follow [this post](http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts). Since I wanted to ability to use named anchors, I made the following change:
+
+```diff
+--- plugins/post_url.rb.orig	2014-05-14 13:33:36.938495170 -0400
++++ plugins/post_url.rb	2014-05-14 13:30:26.162496398 -0400
+@@ -25,8 +25,10 @@
+   class PostUrl < Liquid::Tag
+     def initialize(tag_name, post, tokens)
+       super
++      post, anchor = post.strip.split
+       @orig_post = post.strip
+       @post = PostComparer.new(@orig_post)
++      @anchor = anchor
+     end
+ 
+     def render(context)
+@@ -34,7 +36,11 @@
+       
+       site.posts.each do |p|
+         if @post == p
+-          return p.url
++          if @anchor.nil?
++             return p.url
++          else
++             return p.url + "#" + @anchor
++          end
+         end
+       end
+```
+
+I doubt these will be the last of the perp cuts that I uncover, so stay tuned for more fixes. I am starting to think [this applies](http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html) to Octopress, but I still enjoy the challenge and the learning experience.
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Hello World!]]></title>
     <link href="http://blog.alexrothberg.com/2014/05/13/hello-world/"/>
     <updated>2014-05-13T00:56:09-04:00</updated>
     <id>http://blog.alexrothberg.com/2014/05/13/hello-world</id>
-    <content type="html"><![CDATA[<p>This is my <a href="https://en.wikipedia.org/wiki/Hello_world_program">inaugural, requisite</a> post on my personal blog.</p>
+    <content type="html"><![CDATA[This is my [inaugural, requisite](https://en.wikipedia.org/wiki/Hello_world_program) post on my personal blog.
 
-<p>I have chosen to run my blog with <a href="http://octopress.org/">Octopress</a> rather than WordPress or Blogger. Why? <a href="http://decodize.com/html/moving-from-wordpress-to-octopress/">This blogger</a> and <a href="http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/">this blogger</a> do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using <a href="https://pages.github.com/">GitHub Pages</a>.</p>
+I have chosen to run my blog with [Octopress](http://octopress.org/) rather than WordPress or Blogger. Why? [This blogger](http://decodize.com/html/moving-from-wordpress-to-octopress/) and [this blogger](http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/) do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using [GitHub Pages](https://pages.github.com/). 
 
-<p>The guide <a href="http://octopress.org/docs/setup/">here</a> does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions <a href="http://octopress.org/docs/deploying/github/#custom_domains">here</a> to create a CNAME file and then <a href="http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames">adding a simple &ldquo;CNAME Record&rdquo; (an alias) on GoDaddy</a> was all it took for <a href="http://blog.alexrothberg.com">blog.alexrothberg.com</a> to direct to <a href="http://cancan101.github.io">cancan101.github.io</a>.</p>
+The guide [here](http://octopress.org/docs/setup/) does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions [here](http://octopress.org/docs/deploying/github/#custom_domains) to create a CNAME file and then [adding a simple "CNAME Record" (an alias) on GoDaddy](http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames) was all it took for [blog.alexrothberg.com](http://blog.alexrothberg.com) to direct to [cancan101.github.io](http://cancan101.github.io).
 
-<p>The default behavior for Octopress is to put the blog content in the <code>/blog/</code> subdirectory. Since I am using a subdomain for my namespacing, this proved to be awkward. <a href="http://xit0.org/2013/04/remove-redundant-slash-blog-prefix-from-octopress-website/">This post</a> offers an easy solution. I also found this <a href="https://github.com/imathis/octopress/issues/464">GitHub Issue</a> discussing the issue. You can see changes I made <a href="https://github.com/cancan101/cancan101.github.io/commit/fa2778c349f7d60a16ed073c17702404d159206b">here</a>. When done with the edits I also had to <a href="http://octopress.org/docs/updating/">run <code>rake update_source</code></a>.</p>
+###<a name="blog-path"></a>Simplifying the URL
+The default behavior for Octopress is to put the blog content in the `/blog/` subdirectory in the URL. Since I am using a subdomain for my namespacing, this proved to be awkward. The URLs started with: `http://blog.alexrothberg.com/blog/`. [This post](http://xit0.org/2013/04/remove-redundant-slash-blog-prefix-from-octopress-website/) offers an easy solution. I also found this [GitHub Issue](https://github.com/imathis/octopress/issues/464) discussing the issue. You can see changes I made [here](https://github.com/cancan101/cancan101.github.io/commit/fa2778c349f7d60a16ed073c17702404d159206b). When done with the edits I also had to [run `rake update_source`](http://octopress.org/docs/updating/).
 
-<h3>Helpful Links</h3>
 
-<ul>
-<li><a href="http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/">http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/</a></li>
-<li><a href="http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/">http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/</a></li>
-<li><a href="http://stackoverflow.com/questions/12328828/directory-structure-of-octopress">http://stackoverflow.com/questions/12328828/directory-structure-of-octopress</a></li>
-</ul>
-
+###Helpful Links
+* http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/
+* http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/ 
+* http://stackoverflow.com/questions/12328828/directory-structure-of-octopress
 ]]></content>
   </entry>
   

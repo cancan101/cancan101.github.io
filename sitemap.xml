@@ -2,22 +2,26 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://blog.alexrothberg.com/2014/05/13/hello-world/</loc>
-        <lastmod>2014-05-14T02:44:02-04:00</lastmod>
+        <lastmod>2014-05-14T13:48:43-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/2014/05/13/fleeting-liquidity/</loc>
-        <lastmod>2014-05-14T02:44:02-04:00</lastmod>
+        <lastmod>2014-05-14T13:48:43-04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/</loc>
+        <lastmod>2014-05-14T13:47:13-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/</loc>
-        <lastmod>2014-05-14T02:44:02-04:00</lastmod>
+        <lastmod>2014-05-14T13:48:43-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/robots.txt</loc>
-        <lastmod>2014-05-14T02:44:02-04:00</lastmod>
+        <lastmod>2014-05-14T12:11:29-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/archives/</loc>
-        <lastmod>2014-05-14T02:44:02-04:00</lastmod>
+        <lastmod>2014-05-14T13:48:43-04:00</lastmod>
     </url>
 </urlset>
