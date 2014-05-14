@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Blog | Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/categories/blog/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-05-14T14:07:22-04:00</updated>
+  <updated>2014-05-14T14:09:10-04:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -79,7 +79,7 @@ Since I wanted the ability to use named anchors, I made the following change to 
        end
 ```
 
-I doubt these will be the last of the perp cuts that I uncover, so stay tuned for more fixes. I am starting to think [this applies](http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html) to Octopress, but I still enjoy the challenge and the learning experience.
+I doubt these will be the last of the paper cuts that I uncover, so stay tuned for more fixes. I am starting to think [this applies](http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html) to Octopress, but I still enjoy the challenge and the learning experience.
 ]]></content>
   </entry>
   
