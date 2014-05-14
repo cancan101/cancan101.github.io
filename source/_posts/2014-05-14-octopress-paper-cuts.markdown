@@ -70,4 +70,4 @@ Since I wanted the ability to use named anchors, I made the following change to 
        end
 ```
 
-I doubt these will be the last of the perp cuts that I uncover, so stay tuned for more fixes. I am starting to think [this applies](http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html) to Octopress, but I still enjoy the challenge and the learning experience.
+I doubt these will be the last of the paper cuts that I uncover, so stay tuned for more fixes. I am starting to think [this applies](http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html) to Octopress, but I still enjoy the challenge and the learning experience.
