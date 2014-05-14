@@ -134,7 +134,17 @@
 
 <h4>post_url plugin</h4>
 
-<p>In order to use <code>post_url</code> to allow intelligent linking between posts, I had to follow <a href="http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts">this post</a>. Since I wanted to ability to use named anchors, I made the following change:</p>
+<p>In order to use <code>post_url</code> to allow intelligent linking between posts, I had to follow <a href="http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts">this post</a>.</p>
+
+<p>Then I ran into this error message:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Liquid Exception: Tag '{%%20post_url%202014-05-13-hello-world%20%}' was not properly terminated with regexp: /\%}/ in atom.xml</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Following <a href="https://github.com/davidfstr/rdiscount/issues/75#issuecomment-22607869">this comment</a> fixed that issue.</p>
+
+<p>Since I wanted the ability to use named anchors, I made the following change to the <code>post_url.rb</code> file:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
