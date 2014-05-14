@@ -38,7 +38,7 @@
 
     (function() {
       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
   </script>
@@ -155,9 +155,13 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2014/05/13/hello-world/" data-via="" data-counturl="http://blog.alexrothberg.com/2014/05/13/hello-world/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2014/05/13/hello-world/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2014/05/13/hello-world/" >Tweet</a>
   
   
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
   
 </div>
 
@@ -197,7 +201,7 @@
 </section>
 <section>
   <h1>About Me</h1>
-  <p>I graduated MIT in 2009 with degrees in Computer Science and Economics. I traded US equities, futures, and options from 2009-2014 with GETCO (now known as KCG).</p>
+  <p>I graduated MIT in 2009 with degrees in Computer Science and Economics. I traded US equities, futures, and options from 2009-2014 with <a href="https://en.wikipedia.org/wiki/Global_Electronic_Trading_Company">GETCO</a> (now known as <a href="https://en.wikipedia.org/wiki/KCG_Holdings">KCG</a>).</p>
 </section>
 
 <section>
@@ -230,6 +234,15 @@
 </section>
 
 
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/+AlexRothberg?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
 
 
 
@@ -265,7 +278,24 @@
 
 
 
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
 
 
 
