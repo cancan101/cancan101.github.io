@@ -4,7 +4,7 @@
   <title><![CDATA[Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-05-14T14:09:10-04:00</updated>
+  <updated>2014-05-16T15:55:08-04:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -12,6 +12,248 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Map Recognition]]></title>
+    <link href="http://blog.alexrothberg.com/2014/05/15/map-recognition/"/>
+    <updated>2014-05-15T15:27:53-04:00</updated>
+    <id>http://blog.alexrothberg.com/2014/05/15/map-recognition</id>
+    <content type="html"><![CDATA[<p>I wanted to write a program to identify a map of a US state.</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/texas.png" width="105" height="110" title="Map of Texas" ></p>
+
+<p>To make life a little more challenging, this program had to work even if the maps are rotated and are no longer in the standard <a href="https://en.wikipedia.org/wiki/Map#Orientation_of_maps">&ldquo;North is up&rdquo; orientation</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. Further the map images may be off-center and rescaled:</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/texas-rotate.png" width="140" height="110" title="Map of Texas Rotated and Translated" ></p>
+
+<h4>Data Set</h4>
+
+<p>The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to <a href="http://www.50states.com/us.htm">this page</a> which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website&rsquo;s URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.</p>
+
+<p><img src="http://www.50states.com/maps/texas.gif" width="152" height="200" title="Original Texas Map" ></p>
+
+<p>First some Python to get the list of all state names:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">text</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://www.50states.com/us.htm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'><span class="n">doc</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">document_fromstring</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class='line'><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;.//ul[@class=&#39;bulletedList&#39;]/li/a&quot;</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">url</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;href&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">state_name</span> <span class="o">=</span> <span class="n">posixpath</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">posixpath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'>    <span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_name</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">make_url</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+</span><span class='line'>    <span class="s">&quot;return http://www.50states.com/maps/</span><span class="si">%s</span><span class="s">.gif&quot;</span> <span class="o">%</span> <span class="n">state</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next I tried to open one of these images using OpenCV&rsquo;s <code>imread</code> only to discover that OpenCV <a href="http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#imread">does not handle gifs</a> so I built this utility method to convert the GIF to PNG and then to read them with <code>imread</code>:</p>
+
+<div><script src='https://gist.github.com/80e27feaef8eae0ed921.js'></script>
+<noscript><pre><code>from PIL import Image
+import requests
+import tempfile
+
+def load_gif_url(url):
+    with tempfile.NamedTemporaryFile(suffix=&quot;.gif&quot;) as f:
+        f.write(requests.get(url).content)
+        f.flush()
+        img = Image.open(f.name)
+
+    with tempfile.NamedTemporaryFile(suffix=&quot;.png&quot;) as f:
+        img.save(f.name)
+        f.flush()
+        src = cv2.imread(f.name)
+
+    assert src is not None and len(src), &quot;Empty&quot;
+
+    return src
+</code></pre></noscript></div>
+
+
+<p>With the images loaded, I believed the following operations should suffice to get my final, filled-in image:</p>
+
+<ol>
+<li>Remove the text heading (strip off some number of rows from the top of each image).</li>
+<li>Convert &ldquo;color&rdquo; image to binary image (1=black, 0=white) (this will be <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours">required by <code>findContours</code></a>)</li>
+<li>Find the &ldquo;contours&rdquo; that bound areas we will fill in (i.e. identify the state outlines).</li>
+<li>Convert contours to polygons.</li>
+<li>Fill in area bounded by &ldquo;significant&rdquo; polygons.</li>
+</ol>
+
+
+<p>Here when I say significant polygons, I want to make sure the polygon bounds a non-trivial area and is not a stray mark.</p>
+
+<p>I use the following methods to convert image and to display the image using matplotlib:</p>
+
+<div><script src='https://gist.github.com/aca55ff569cb790d7757.js'></script>
+<noscript><pre><code>def get_bw(src):
+    return cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)</code></pre></noscript></div>
+
+
+<p>This is my first attempt at the algorithm:</p>
+
+<div><script src='https://gist.github.com/6b4bf88c74bcacfa9d9f.js'></script>
+<noscript><pre><code>def get_state_v0(state):
+    url = &quot;http://www.50states.com/maps/%s.gif&quot; % state
+    IN = load_gif_url(url)
+
+    #Drop the text at the top
+    IN = IN[150:]
+
+    #Convert 3 color channels to 1
+    IN_bw = get_bw(IN)
+  
+    #invert colors (per docs for findContour)
+    IMG = 255-IN_bw
+       
+    contours, hierarchy = cv2.findContours(IMG.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    threshold = 0.02
+
+    img = 255*np.ones(IN.shape, dtype=np.uint8)
+    for i in xrange(len(contours)):
+        cnt = contours[i]
+        cnt_len = cv2.arcLength(cnt, True)
+        cc = cv2.approxPolyDP(cnt, threshold * cnt_len, True)
+
+        area = cv2.contourArea(cc)
+
+        if cnt_len &gt; 50 and area &gt; 500:
+            cv2.drawContours(img, contours, i, (0,0,0),thickness=cv2.cv.CV_FILLED) 
+
+    show_color(img)
+    return img</code></pre></noscript></div>
+
+
+<p>Which seems to work for most states, but fails for Massachusetts:</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/massachusetts-fail.png" title="Failure with Massachusetts" ></p>
+
+<p>This seems to be due to a break somewhere in the outline. A simple <code>dilate</code> with a <code>3x3</code> kernel solved the problem.</p>
+
+<p>The final algorithm is here:</p>
+
+<div><script src='https://gist.github.com/cb6a22142fc5fc4d149c.js'></script>
+<noscript><pre><code>def get_state_v1(state):
+    url = &quot;http://www.50states.com/maps/%s.gif&quot; % state
+    IN = load_gif_url(url)
+
+    #Drop the text at the top
+    IN = IN[150:]
+
+    #Convert 3 color channels to 1
+    IN_bw = get_bw(IN)
+  
+    #invert colors (per docs for findContour)
+    IMG = 255-IN_bw
+    
+    # This seems to bre required for Massachusetts
+    kernel = np.ones((3,3),np.uint8)
+    IMG = cv2.dilate(IMG,kernel,iterations = 1)
+    
+    contours, hierarchy = cv2.findContours(IMG.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    threshold = 0.02
+
+    img = 255*np.ones(IN.shape, dtype=np.uint8)
+    for i in xrange(len(contours)):
+        cnt = contours[i]
+        cnt_len = cv2.arcLength(cnt, True)
+        cc = cv2.approxPolyDP(cnt, threshold * cnt_len, True)
+
+        area = cv2.contourArea(cc)
+
+        if cnt_len &gt; 50 and area &gt; 500:
+            cv2.drawContours(img, contours, i, (0,0,0),thickness=cv2.cv.CV_FILLED) 
+
+    return img</code></pre></noscript></div>
+
+
+<p>which works for all states:</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/states.png" title="Solid Fills US States" ></p>
+
+<h4>Image Recognition</h4>
+
+<p>I needed some way of comparing two images which may have different rotations, scalings and/or translations. My first thought was to develop a process that normalizes an image to a <a href="https://en.wikipedia.org/wiki/Canonical_form">canonical</a> orientation, scaling and position. I could then take an unlabeled image, and compare its standardized form to my set of canonicalized maps pixel-by-pixel with some distance metric such as MAE or MSE.</p>
+
+<p>How to normalize the image? <a href="https://en.wikipedia.org/wiki/Image_moment">Image moments</a> immediately came to mind. The zeroth moment is the &ldquo;mass&rdquo; of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling.</p>
+
+<p>The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an <a href="https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points">arithmetic average of black pixel coordinates</a>. The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an &ldquo;axis of orientation&rdquo; which I can used to normalize rotation. Wikipedia provides the <a href="https://en.wikipedia.org/wiki/Image_moment#Examples_2">answer</a> but a more complete explanation can be <a href="http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html">found here</a>.</p>
+
+<p>At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called <a href="https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments">&ldquo;rotation invariant moments&rdquo;</a>. These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments">Hu moments</a>. The Hu moments are the most frequently used, but <a href="http://library.utia.cas.cz/prace/20000033.pdf">Flusser shows there are superior choices</a>. For convenience I will use the seven Hu moments as feature values in a machine learning classifier.</p>
+
+<p>In order to classify the images using the seven feature values, I decided to use <a href="http://scikit-learn.org/">scikit-learn</a>&rsquo;s <a href="http://scikit-learn.org/stable/modules/svm.html#classification">SVM Classifier</a>. I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I <a href="http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf">made sure to scale my features</a>.</p>
+
+<p>An SVM with a <code>linear</code> kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an &ldquo;rbf&rdquo; kernel and a default setting for <code>gamma</code> gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double%20matchShapes(InputArray%20contour1,%20InputArray%20contour2,%20int%20method,%20double%20parameter)">OpenCV method <code>matchShapes</code></a> which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.</p>
+
+<p>I changed my features to be the signum&#8217;ed log of the Hu Moments, and then applied standard scaling. This log of the Hu moments is pretty common in the literature, see: <a href="http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf">Conley</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/confusion-final.png" title="Confusion Matrix" ></p>
+
+<h4>Blurring</h4>
+
+<p>While not part of the original problem specification, I wanted to see how this classification technique would fare under image blurring. I show below classification scores as a function of increasing amounts of blur. Using a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=blur#blur">normalized box filter</a>:</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/blur.png" width="400" height="400" title="Blurring" ></p>
+
+<p>and a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur">Gaussian Blur</a>:</p>
+
+<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
+
+<p>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
+
+<h3>Extensions</h3>
+
+<p>It would be cool to evaluate this same technique on maps of countries. I have found two source of country maps: <a href="http://www.aneki.com/maps_blank/">this</a> and <a href="http://www.worldatlas.com/sitemap.xml">this</a>. Using the second link, the URLs for the country pages can be extracted using:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">text</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://www.worldatlas.com/sitemap.xml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'><span class="n">el</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">urls</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class='line'><span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">el</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">urls</span><span class="p">)</span>
+</span><span class='line'><span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;outline&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;countrys&quot;</span><span class="p">)]</span>
+</span><span class='line'><span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;states&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;province&quot;</span><span class="p">)]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>In reality, not only do I need to be concerned with <a href="http://docs.opencv.org/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html">scale, rotation, and translation</a>, but I also should care about the <a href="https://en.wikipedia.org/wiki/List_of_map_projections">map projection</a>.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>&ldquo;To improve classification rates, the natural logarithm of the absolute value of the seven invariants are used instead of the invariants themselves, because the invariants often have very low absolute values (less than 0.001), so taking the logarithm of the invariants reduces the density of the invariants near the origin. Also, the values of the natural logarithms are then converted into standardized z-scores before classification&rdquo;<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Octopress Paper Cuts]]></title>
