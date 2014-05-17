@@ -6,7 +6,7 @@ comments: true
 published: true
 categories: image recognition, machine learning
 description: I show identifying transformed US state maps.
-keywords:image recognition, machine learning, Hu moments, image moments, sklearn, SVM, scikit-learn
+keywords: image recognition, machine learning, Hu moments, image moments, sklearn, SVM, scikit-learn
 ---
 I wanted to write a program to identify a map of a US state.
 
@@ -83,7 +83,7 @@ In order to classify the images using the seven feature values, I decided to use
 
 An SVM with a `linear` kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an "rbf" kernel and a default setting for `gamma` gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the [OpenCV method `matchShapes`](http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double matchShapes(InputArray contour1, InputArray contour2, int method, double parameter\)) which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.
 
-I changed my features to be the signum'ed log of the Hu Moments, and then applied standard scaling. This log of the Hu moments is pretty common in the literature, see: [Conley](http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf)[^conley]. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):
+I changed my features to be the signum'ed log of the absolute values of the Hu Moments, and then applied standard scaling. This log transform of the Hu moments is pretty common in the literature, see: [Conley](http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf)[^conley]. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):
 
 [^conley]: "To improve classification rates, the natural logarithm of the absolute value of the seven invariants are used instead of the invariants themselves, because the invariants often have very low absolute values (less than 0.001), so taking the logarithm of the invariants reduces the density of the invariants near the origin. Also, the values of the natural logarithms are then converted into standardized z-scores before classification"
 
