@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Blog | Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/categories/blog/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-05-16T15:55:08-04:00</updated>
+  <updated>2014-05-17T12:57:51-04:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -20,17 +20,20 @@
     <id>http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts</id>
     <content type="html"><![CDATA[Now that I have started writing a few blog posts, I have come across a few ["paper cuts"](https://en.wikipedia.org/wiki/Paper_cut_bug) with the (current) Octopress framework. Some quick background on Octopress: I am currently running the v2.0 version of Octopress which appears to have been released in [July 2011](http://octopress.org/2011/07/23/octopress-20-surfaces/). According to [this blog](http://sasheldon.com/blog/2013/07/07/waiting-for-octopress-2-successor/), the v2.1 version was scrapped in favor of a more significant v3.0. From the [Twitter feed](https://twitter.com/octopress) and the [GitHub page](https://github.com/octopress/octopress), v3.0 seems to be in active development but not yet released. That leaves me with using v2.0 for the time being.
 
+<blockquote class="twitter-tweet" lang="en"><p><a href="https://twitter.com/amesbah">@amesbah</a> The current release is a bit neglected right now. The next version is being worked on quite a bit though. <a href="https://t.co/a3cogy8z2O">https://t.co/a3cogy8z2O</a></p>&mdash; Octopress (@octopress) <a href="https://twitter.com/octopress/statuses/466799796465184768">May 15, 2014</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 ####Social Button Alignment
 The first issue that I came across was the vertical alignment of the "social buttons" on the bottom of each post. You can see the Facebook "Like" and "Share" buttons are lower than the Twitter and Google+ buttons:
 
-<img src="/images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png" title="Facebook Alignment Issue" >
+{% img /images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png Facebook Alignment Issue%}
 
 which was fixed by following [this comment](https://github.com/imathis/octopress/issues/176#issuecomment-6531879).
 
 ####Embedded Gist Rendering
 The next issue was rendering of embedded [Gists](https://gist.github.com/). The rendered Gist look pretty crappy:
 
-<img src="/images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png" title="Embedded Gist" >
+{% img /images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png Embedded Gist %}
 
 There are a number of people talking about the issue: [here](http://devspade.com/blog/2013/08/06/fixing-gist-embeds-in-octopress/) and [here](https://github.com/imathis/octopress/issues/847). [The solution I ended up using was a combination of these plus some of my own CSS.](https://github.com/cancan101/cancan101.github.io/commit/d30d95694e5e4915b80e0082fb3ef1caac1f021b)
 
@@ -38,14 +41,14 @@ There are a number of people talking about the issue: [here](http://devspade.com
 Currently meta tags for keywords and description are only generated on post pages not on site level pages. A solution is offered [here](http://qiang.hu/2013/04/octopress-seo-site-keywords-and-description.html) and a [Pull Request](https://github.com/imathis/octopress/pull/1558).
 
 ####Blog in URL Path with Subdomain
-I addressed this issue in a [previous post](/2014/05/13/hello-world/#blog-path). 
+I addressed this issue in a [previous post]({% post_url 2014-05-13-hello-world blog-path %}). 
 
 ####post_url plugin
 In order to use `post_url` to allow intelligent linking between posts, I had to follow [this post](http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts).
 
 Then I ran into this error message:
 ```
-Liquid Exception: Tag '{%%20post_url%202014-05-13-hello-world%20%}' was not properly terminated with regexp: /\%}/ in atom.xml
+Liquid Exception: Tag '{% raw  %}{%%20post_url%202014-05-13-hello-world%20%}' was not properly terminated with regexp: /\%}/{% endraw %} in atom.xml
 ```
 Following [this comment](https://github.com/davidfstr/rdiscount/issues/75#issuecomment-22607869) fixed that issue.
 

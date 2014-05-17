@@ -9,8 +9,8 @@
   <meta name="author" content="Alex Rothberg">
 
   
-  <meta name="description" content="Alex Rothberg (cancan101) journal.">
-  <meta name="keywords" content="Alex Rothberg, cancan101, options, trading, HFT, Java, Python, Pandas, machine learning, image recognition">
+  <meta name="description" content="I show identifying transformed US state maps.">
+  <meta name="keywords" content="image recognition, machine learning, Hu moments, image moments, sklearn, SVM, scikit-learn">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -285,7 +285,7 @@ def load_gif_url(url):
 
 <p>An SVM with a <code>linear</code> kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an &ldquo;rbf&rdquo; kernel and a default setting for <code>gamma</code> gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double%20matchShapes(InputArray%20contour1,%20InputArray%20contour2,%20int%20method,%20double%20parameter)">OpenCV method <code>matchShapes</code></a> which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.</p>
 
-<p>I changed my features to be the signum&#8217;ed log of the Hu Moments, and then applied standard scaling. This log of the Hu moments is pretty common in the literature, see: <a href="http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf">Conley</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):</p>
+<p>I changed my features to be the signum&#8217;ed log of the absolute values of the Hu Moments, and then applied standard scaling. This log transform of the Hu moments is pretty common in the literature, see: <a href="http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf">Conley</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):</p>
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/confusion-final.png" title="Confusion Matrix" ></p>
 
