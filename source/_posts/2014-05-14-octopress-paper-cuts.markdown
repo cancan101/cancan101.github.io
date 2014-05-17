@@ -11,6 +11,9 @@ description: I explain bugs in Octopress and their solutions.
 
 Now that I have started writing a few blog posts, I have come across a few ["paper cuts"](https://en.wikipedia.org/wiki/Paper_cut_bug) with the (current) Octopress framework. Some quick background on Octopress: I am currently running the v2.0 version of Octopress which appears to have been released in [July 2011](http://octopress.org/2011/07/23/octopress-20-surfaces/). According to [this blog](http://sasheldon.com/blog/2013/07/07/waiting-for-octopress-2-successor/), the v2.1 version was scrapped in favor of a more significant v3.0. From the [Twitter feed](https://twitter.com/octopress) and the [GitHub page](https://github.com/octopress/octopress), v3.0 seems to be in active development but not yet released. That leaves me with using v2.0 for the time being.
 
+<blockquote class="twitter-tweet" lang="en"><p><a href="https://twitter.com/amesbah">@amesbah</a> The current release is a bit neglected right now. The next version is being worked on quite a bit though. <a href="https://t.co/a3cogy8z2O">https://t.co/a3cogy8z2O</a></p>&mdash; Octopress (@octopress) <a href="https://twitter.com/octopress/statuses/466799796465184768">May 15, 2014</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 ####Social Button Alignment
 The first issue that I came across was the vertical alignment of the "social buttons" on the bottom of each post. You can see the Facebook "Like" and "Share" buttons are lower than the Twitter and Google+ buttons:
 
