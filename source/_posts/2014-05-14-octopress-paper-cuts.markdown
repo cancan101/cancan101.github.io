@@ -13,7 +13,7 @@ Now that I have started writing a few blog posts, I have come across a few ["pap
 
 <blockquote class="twitter-tweet" lang="en"><p><a href="https://twitter.com/amesbah">@amesbah</a> The current release is a bit neglected right now. The next version is being worked on quite a bit though. <a href="https://t.co/a3cogy8z2O">https://t.co/a3cogy8z2O</a></p>&mdash; Octopress (@octopress) <a href="https://twitter.com/octopress/statuses/466799796465184768">May 15, 2014</a></blockquote>
 <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
+<!-- more -->
 ####Social Button Alignment
 The first issue that I came across was the vertical alignment of the "social buttons" on the bottom of each post. You can see the Facebook "Like" and "Share" buttons are lower than the Twitter and Google+ buttons:
 

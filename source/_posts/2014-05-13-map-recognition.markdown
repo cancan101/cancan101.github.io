@@ -22,7 +22,7 @@ To make life a little more challenging, this program had to work even if the map
 The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to [this page](http://www.50states.com/us.htm) which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website's URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.
 
 {% img http://www.50states.com/maps/texas.gif 152 200 Original Texas Map %}
-
+<!-- more -->
 First some Python to get the list of all state names:
 ```python
 text = requests.get("http://www.50states.com/us.htm").text

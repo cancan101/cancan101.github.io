@@ -10,7 +10,7 @@ description: Introductory post to my blog.
 This is my [inaugural, requisite](https://en.wikipedia.org/wiki/Hello_world_program) post on my personal blog.
 
 I have chosen to run my blog with [Octopress](http://octopress.org/) rather than WordPress or Blogger. Why? [This blogger](http://decodize.com/html/moving-from-wordpress-to-octopress/) and [this blogger](http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/) do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using [GitHub Pages](https://pages.github.com/). 
-
+<!-- more -->
 The guide [here](http://octopress.org/docs/setup/) does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions [here](http://octopress.org/docs/deploying/github/#custom_domains) to create a CNAME file and then [adding a simple "CNAME Record" (an alias) on GoDaddy](http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames) was all it took for [blog.alexrothberg.com](http://blog.alexrothberg.com) to direct to [cancan101.github.io](http://cancan101.github.io).
 
 ###<a name="blog-path"></a>Simplifying the URL
