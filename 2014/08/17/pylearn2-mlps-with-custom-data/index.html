@@ -5,12 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Hello World! - Rothberg Writes</title>
+  <title>Pylearn2 MLPs With Custom Data - Rothberg Writes</title>
   <meta name="author" content="Alex Rothberg">
 
   
-  <meta name="description" content="Introductory post to my blog.">
-  <meta name="keywords" content="Octopress, Hello World, subdomain, GitHub, CNAME">
+  <meta name="description" content="I show identifying transformed US state maps using MLPs.">
+  <meta name="keywords" content="image recognition, machine learning, Hu moments, image moments, sklearn, MLP, pylearn2">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://blog.alexrothberg.com/2014/05/13/hello-world">
+  <link rel="canonical" href="http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Rothberg Writes" type="application/atom+xml">
@@ -80,7 +80,7 @@
   
   <header>
     
-      <h1 class="entry-title">Hello World!</h1>
+      <h1 class="entry-title">Pylearn2 MLPs With Custom Data</h1>
     
     
       <p class="meta">
@@ -96,34 +96,40 @@
   
 
 
-<time datetime="2014-05-13T00:56:09-04:00" pubdate data-updated="true">May 13<span>th</span>, 2014</time>
+<time datetime="2014-08-17T23:39:28-04:00" pubdate data-updated="true">Aug 17<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>This is my <a href="https://en.wikipedia.org/wiki/Hello_world_program">inaugural, requisite</a> post on my personal blog.</p>
+<div class="entry-content"><p>I decided to revisit the <a href="/2014/05/15/map-recognition/">state map recognition problem</a>, only this time, rather than using an SVM on the Hu moments, I used an <a href="http://en.wikipedia.org/wiki/Multilayer_perceptron">MLP</a>. This is not the same as using a &ldquo;deep neural network&rdquo; on the raw image pixels themselves as I am still using using domain specific knowledge to build my features (the Hu moments).</p>
 
-<p>I have chosen to run my blog with <a href="http://octopress.org/">Octopress</a> rather than WordPress or Blogger. Why? <a href="http://decodize.com/html/moving-from-wordpress-to-octopress/">This blogger</a> and <a href="http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/">this blogger</a> do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using <a href="https://pages.github.com/">GitHub Pages</a>.</p>
+<p>As of my writing this blog post, scikit-learn does not support MLPs (see <a href="https://github.com/scikit-learn/scikit-learn/wiki/GSoC-2014:-Extending-Neural-Networks-Module-for-Scikit-learn">this GSoC for plans to add this feature</a>). Instead I turn to <a href="http://deeplearning.net/software/pylearn2/">pylearn2</a>, the machine learning library from the <a href="http://lisa.iro.umontreal.ca/index_en.html">LISA lab</a>. While pylearn2 is <a href="http://fastml.com/pylearn2-in-practice/">not as easy to use as scikit-learn</a>, <a href="http://deeplearning.net/software/pylearn2/tutorial/notebook_tutorials.html">there are some great tutorials</a> to get you started.</p>
 
 <!-- more -->
 
 
-<p>The guide <a href="http://octopress.org/docs/setup/">here</a> does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions <a href="http://octopress.org/docs/deploying/github/#custom_domains">here</a> to create a CNAME file and then <a href="http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames">adding a simple &ldquo;CNAME Record&rdquo; (an alias) on GoDaddy</a> was all it took for <a href="http://blog.alexrothberg.com">blog.alexrothberg.com</a> to direct to <a href="http://cancan101.github.io">cancan101.github.io</a>.</p>
+<p>I added this line to the bottom of <a href="/2014/05/15/map-recognition/#notebook-download">my last notebook</a> to dump the Hu moments to a CSV so that I could start working in a fresh notebook:</p>
 
-<h3><a name="blog-path"></a>Simplifying the URL</h3>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">items</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">CSV_DATA</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>The default behavior for Octopress is to put the blog content in the <code>/blog/</code> subdirectory in the URL. Since I am using a subdomain for my namespacing, this proved to be awkward. The URLs started with: <code>http://blog.alexrothberg.com/blog/</code>. <a href="http://xit0.org/2013/04/remove-redundant-slash-blog-prefix-from-octopress-website/">This post</a> offers an easy solution. I also found this <a href="https://github.com/imathis/octopress/issues/464">GitHub Issue</a> discussing the issue. You can see changes I made <a href="https://github.com/cancan101/cancan101.github.io/commit/fa2778c349f7d60a16ed073c17702404d159206b">here</a>. When done with the edits I also had to <a href="http://octopress.org/docs/updating/">run <code>rake update_source</code></a>.</p>
 
-<h3>Helpful Links</h3>
+<p>In my new notebook, I performed the same feature normalization that had for the SVM: taking the log of the Hu moments and then mean centering and std-dev scaling those log-transformed values. I did actually test the MLP classifier without performing these normalization and like the SVM, classification performance degraded.</p>
 
-<ul>
-<li><a href="http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/">http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/</a></li>
-<li><a href="http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/">http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/</a></li>
-<li><a href="http://stackoverflow.com/questions/12328828/directory-structure-of-octopress">http://stackoverflow.com/questions/12328828/directory-structure-of-octopress</a></li>
-</ul>
+<p>With the data normalized, I shuffled the data and then split the data into test, validation and training sets (15%, 15%, 70% respectively). The simplest way I found to shuffle the rows of a Pandas DataFrame was: <code>df.ix[np.random.permutation(df.index)]</code>. I initially tried <code>df.apply(np.random.permutation)</code>, which lead to each column being shuffled independently (and my fits being horrible).</p>
 
+<p>I saved the three data sets out to three separate CSV files. I could then use the <a href="http://deeplearning.net/software/pylearn2/library/datasets.html#module-pylearn2.datasets.csv_dataset">CSVDataset</a> in the training YAML to load in the file. I created my YAML file by taking the one used for classifying the MNIST digits in the <a href="http://nbviewer.ipython.org/github/lisa-lab/pylearn2/blob/master/pylearn2/scripts/tutorials/multilayer_perceptron/multilayer_perceptron.ipynb">MLP tutorial</a>, modifying the datasets and changing <code>n_classes</code> (output classes) from 10 to 50 and <code>nvis</code> (input features) from 784 to 7. I also had to reduce <code>sparse_init</code> from 15 to 7 after a mildly helpful assertion error was thrown (I am not really sure what this variable does but it has to be &lt;= the number of input features). For good measure I also reduced the size of the first layer from 500 nodes to 50, given that I have far fewer features than the 784 pixels in the MNIST images.</p>
+
+<p>After that I ran the fit and saw that my <code>test_y_misclass</code> went to 0.0 in the final epochs. I was able to plot this convergence using the <a href="http://deeplearning.net/software/pylearn2/library/scripts.html#module-pylearn2.scripts.plot_monitor"><code>plot_monitor</code> script</a>. Since <a href="https://github.com/lisa-lab/pylearn2/issues/1034">I like to have my entire notebook self-contained</a>, I ended up modifying the plot_monitor script to run as a function call from within IPython Notebook (<a href="https://github.com/cancan101/pylearn2/compare/ipython_embed_script">see my fork</a>).</p>
+
+<p>Here is <a href="http://nbviewer.ipython.org/gist/cancan101/ea563e394ea968127e0e">the entire IPython Notebook</a>.</p>
+
+<p>I didn&rsquo;t tinker with regularization, but this topic is well addressed in the pylearn2 tutorials.</p>
+
+<p>In a future post, I plan to use CNN to classify the state map images without having to rely on domain specific knowledge for feature design.</p>
 </div>
 
 
@@ -146,12 +152,12 @@
   
 
 
-<time datetime="2014-05-13T00:56:09-04:00" pubdate data-updated="true">May 13<span>th</span>, 2014</time>
+<time datetime="2014-08-17T23:39:28-04:00" pubdate data-updated="true">Aug 17<span>th</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/categories/blog/'>blog</a>
+    <a class='category' href='/categories/image/'>image</a>, <a class='category' href='/categories/learning/'>learning</a>, <a class='category' href='/categories/machine/'>machine</a>, <a class='category' href='/categories/recognition/'>recognition,</a>
   
 </span>
 
@@ -160,7 +166,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2014/05/13/hello-world/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2014/05/13/hello-world/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -173,8 +179,8 @@
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/2014/05/15/map-recognition/" title="Previous Post: Map Recognition">&laquo; Map Recognition</a>
       
-        <a class="basic-alignment right" href="/2014/05/13/fleeting-liquidity/" title="Next Post: Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees">Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees &raquo;</a>
       
     </p>
   </footer>
@@ -282,8 +288,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://blog.alexrothberg.com/2014/05/13/hello-world/';
-        var disqus_url = 'http://blog.alexrothberg.com/2014/05/13/hello-world/';
+        var disqus_identifier = 'http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data/';
+        var disqus_url = 'http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data/';
         var disqus_script = 'embed.js';
       
     (function () {

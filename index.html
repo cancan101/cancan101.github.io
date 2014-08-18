@@ -83,6 +83,49 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/2014/08/17/pylearn2-mlps-with-custom-data/">Pylearn2 MLPs With Custom Data</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-17T23:39:28-04:00" pubdate data-updated="true">Aug 17<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I decided to revisit the <a href="/2014/05/15/map-recognition/">state map recognition problem</a>, only this time, rather than using an SVM on the Hu moments, I used an <a href="http://en.wikipedia.org/wiki/Multilayer_perceptron">MLP</a>. This is not the same as using a &ldquo;deep neural network&rdquo; on the raw image pixels themselves as I am still using using domain specific knowledge to build my features (the Hu moments).</p>
+
+<p>As of my writing this blog post, scikit-learn does not support MLPs (see <a href="https://github.com/scikit-learn/scikit-learn/wiki/GSoC-2014:-Extending-Neural-Networks-Module-for-Scikit-learn">this GSoC for plans to add this feature</a>). Instead I turn to <a href="http://deeplearning.net/software/pylearn2/">pylearn2</a>, the machine learning library from the <a href="http://lisa.iro.umontreal.ca/index_en.html">LISA lab</a>. While pylearn2 is <a href="http://fastml.com/pylearn2-in-practice/">not as easy to use as scikit-learn</a>, <a href="http://deeplearning.net/software/pylearn2/tutorial/notebook_tutorials.html">there are some great tutorials</a> to get you started.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/2014/08/17/pylearn2-mlps-with-custom-data/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/2014/05/15/map-recognition/">Map Recognition</a></h1>
     
     
@@ -120,228 +163,12 @@
 
 <p><img src="http://www.50states.com/maps/texas.gif" width="152" height="200" title="Original Texas Map" ></p>
 
-<p>First some Python to get the list of all state names:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">text</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://www.50states.com/us.htm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
-</span><span class='line'><span class="n">doc</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">document_fromstring</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span class='line'><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;.//ul[@class=&#39;bulletedList&#39;]/li/a&quot;</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">url</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;href&quot;</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">state_name</span> <span class="o">=</span> <span class="n">posixpath</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">posixpath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-</span><span class='line'>    <span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_name</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="nf">make_url</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
-</span><span class='line'>    <span class="s">&quot;return http://www.50states.com/maps/</span><span class="si">%s</span><span class="s">.gif&quot;</span> <span class="o">%</span> <span class="n">state</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next I tried to open one of these images using OpenCV&rsquo;s <code>imread</code> only to discover that OpenCV <a href="http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#imread">does not handle gifs</a> so I built this utility method to convert the GIF to PNG and then to read them with <code>imread</code>:</p>
-
-<div><script src='https://gist.github.com/80e27feaef8eae0ed921.js'></script>
-<noscript><pre><code>from PIL import Image
-import requests
-import tempfile
-
-def load_gif_url(url):
-    with tempfile.NamedTemporaryFile(suffix=&quot;.gif&quot;) as f:
-        f.write(requests.get(url).content)
-        f.flush()
-        img = Image.open(f.name)
-
-    with tempfile.NamedTemporaryFile(suffix=&quot;.png&quot;) as f:
-        img.save(f.name)
-        f.flush()
-        src = cv2.imread(f.name)
-
-    assert src is not None and len(src), &quot;Empty&quot;
-
-    return src
-</code></pre></noscript></div>
-
-
-<p>With the images loaded, I believed the following operations should suffice to get my final, filled-in image:</p>
-
-<ol>
-<li>Remove the text heading (strip off some number of rows from the top of each image).</li>
-<li>Convert &ldquo;color&rdquo; image to binary image (1=black, 0=white) (this will be <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours">required by <code>findContours</code></a>)</li>
-<li>Find the &ldquo;contours&rdquo; that bound areas we will fill in (i.e. identify the state outlines).</li>
-<li>Convert contours to polygons.</li>
-<li>Fill in area bounded by &ldquo;significant&rdquo; polygons.</li>
-</ol>
-
-
-<p>Here when I say significant polygons, I want to make sure the polygon bounds a non-trivial area and is not a stray mark.</p>
-
-<p>I use the following methods to convert image and to display the image using matplotlib:</p>
-
-<div><script src='https://gist.github.com/aca55ff569cb790d7757.js'></script>
-<noscript><pre><code>def get_bw(src):
-    return cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)</code></pre></noscript></div>
-
-
-<p>This is my first attempt at the algorithm:</p>
-
-<div><script src='https://gist.github.com/6b4bf88c74bcacfa9d9f.js'></script>
-<noscript><pre><code>def get_state_v0(state):
-    url = &quot;http://www.50states.com/maps/%s.gif&quot; % state
-    IN = load_gif_url(url)
-
-    #Drop the text at the top
-    IN = IN[150:]
-
-    #Convert 3 color channels to 1
-    IN_bw = get_bw(IN)
-  
-    #invert colors (per docs for findContour)
-    IMG = 255-IN_bw
-       
-    contours, hierarchy = cv2.findContours(IMG.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    threshold = 0.02
-
-    img = 255*np.ones(IN.shape, dtype=np.uint8)
-    for i in xrange(len(contours)):
-        cnt = contours[i]
-        cnt_len = cv2.arcLength(cnt, True)
-        cc = cv2.approxPolyDP(cnt, threshold * cnt_len, True)
-
-        area = cv2.contourArea(cc)
-
-        if cnt_len &gt; 50 and area &gt; 500:
-            cv2.drawContours(img, contours, i, (0,0,0),thickness=cv2.cv.CV_FILLED) 
-
-    show_color(img)
-    return img</code></pre></noscript></div>
-
-
-<p>Which seems to work for most states, but fails for Massachusetts:</p>
-
-<p><img src="/images/post_images/2014-05-13-map-recognition/massachusetts-fail.png" title="Failure with Massachusetts" ></p>
-
-<p>This seems to be due to a break somewhere in the outline. A simple <code>dilate</code> with a <code>3x3</code> kernel solved the problem.</p>
-
-<p>The final algorithm is here:</p>
-
-<div><script src='https://gist.github.com/cb6a22142fc5fc4d149c.js'></script>
-<noscript><pre><code>def get_state_v1(state):
-    url = &quot;http://www.50states.com/maps/%s.gif&quot; % state
-    IN = load_gif_url(url)
-
-    #Drop the text at the top
-    IN = IN[150:]
-
-    #Convert 3 color channels to 1
-    IN_bw = get_bw(IN)
-  
-    #invert colors (per docs for findContour)
-    IMG = 255-IN_bw
-    
-    # This seems to bre required for Massachusetts
-    kernel = np.ones((3,3),np.uint8)
-    IMG = cv2.dilate(IMG,kernel,iterations = 1)
-    
-    contours, hierarchy = cv2.findContours(IMG.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    threshold = 0.02
-
-    img = 255*np.ones(IN.shape, dtype=np.uint8)
-    for i in xrange(len(contours)):
-        cnt = contours[i]
-        cnt_len = cv2.arcLength(cnt, True)
-        cc = cv2.approxPolyDP(cnt, threshold * cnt_len, True)
-
-        area = cv2.contourArea(cc)
-
-        if cnt_len &gt; 50 and area &gt; 500:
-            cv2.drawContours(img, contours, i, (0,0,0),thickness=cv2.cv.CV_FILLED) 
-
-    return img</code></pre></noscript></div>
-
-
-<p>which works for all states:</p>
-
-<p><img src="/images/post_images/2014-05-13-map-recognition/states.png" title="Solid Fills US States" ></p>
-
-<h4>Image Recognition</h4>
-
-<p>I needed some way of comparing two images which may have different rotations, scalings and/or translations. My first thought was to develop a process that normalizes an image to a <a href="https://en.wikipedia.org/wiki/Canonical_form">canonical</a> orientation, scaling and position. I could then take an unlabeled image, and compare its standardized form to my set of canonicalized maps pixel-by-pixel with some distance metric such as MAE or MSE.</p>
-
-<p>How to normalize the image? <a href="https://en.wikipedia.org/wiki/Image_moment">Image moments</a> immediately came to mind. The zeroth moment is the &ldquo;mass&rdquo; of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling.</p>
-
-<p>The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an <a href="https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points">arithmetic average of black pixel coordinates</a>. The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an &ldquo;axis of orientation&rdquo; which I can used to normalize rotation. Wikipedia provides the <a href="https://en.wikipedia.org/wiki/Image_moment#Examples_2">answer</a> but a more complete explanation can be <a href="http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html">found here</a>.</p>
-
-<p>At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called <a href="https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments">&ldquo;rotation invariant moments&rdquo;</a>. These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments">Hu moments</a>. The Hu moments are the most frequently used, but <a href="http://library.utia.cas.cz/prace/20000033.pdf">Flusser shows there are superior choices</a>. For convenience I will use the seven Hu moments as feature values in a machine learning classifier.</p>
-
-<p>In order to classify the images using the seven feature values, I decided to use <a href="http://scikit-learn.org/">scikit-learn</a>&rsquo;s <a href="http://scikit-learn.org/stable/modules/svm.html#classification">SVM Classifier</a>. I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I <a href="http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf">made sure to scale my features</a>.</p>
-
-<p>An SVM with a <code>linear</code> kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an &ldquo;rbf&rdquo; kernel and a default setting for <code>gamma</code> gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double%20matchShapes(InputArray%20contour1,%20InputArray%20contour2,%20int%20method,%20double%20parameter)">OpenCV method <code>matchShapes</code></a> which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.</p>
-
-<p>I changed my features to be the signum&#8217;ed log of the absolute values of the Hu Moments, and then applied standard scaling. This log transform of the Hu moments is pretty common in the literature, see: <a href="http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf">Conley</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):</p>
-
-<p><img src="/images/post_images/2014-05-13-map-recognition/confusion-final.png" title="Confusion Matrix" ></p>
-
-<h4>Blurring</h4>
-
-<p>While not part of the original problem specification, I wanted to see how this classification technique would fare under image blurring. I show below classification scores as a function of increasing amounts of blur. Using a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=blur#blur">normalized box filter</a>:</p>
-
-<p><img src="/images/post_images/2014-05-13-map-recognition/blur.png" width="400" height="400" title="Blurring" ></p>
-
-<p>and a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur">Gaussian Blur</a>:</p>
-
-<p><img src="/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
-
-<p>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
-
-<h3>Extensions</h3>
-
-<p>It would be cool to evaluate this same technique on maps of countries. I have found two source of country maps: <a href="http://www.aneki.com/maps_blank/">this</a> and <a href="http://www.worldatlas.com/sitemap.xml">this</a>. Using the second link, the URLs for the country pages can be extracted using:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">text</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://www.worldatlas.com/sitemap.xml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
-</span><span class='line'><span class="n">el</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">urls</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span class='line'><span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">el</span><span class="p">:</span>
-</span><span class='line'>    <span class="n">urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">urls</span><span class="p">)</span>
-</span><span class='line'><span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;outline&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;countrys&quot;</span><span class="p">)]</span>
-</span><span class='line'><span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;states&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">&quot;province&quot;</span><span class="p">)]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>In reality, not only do I need to be concerned with <a href="http://docs.opencv.org/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html">scale, rotation, and translation</a>, but I also should care about the <a href="https://en.wikipedia.org/wiki/List_of_map_projections">map projection</a>.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-<li id="fn:2">
-<p>&ldquo;To improve classification rates, the natural logarithm of the absolute value of the seven invariants are used instead of the invariants themselves, because the invariants often have very low absolute values (less than 0.001), so taking the logarithm of the invariants reduces the density of the invariants near the origin. Also, the values of the natural logarithms are then converted into standardized z-scores before classification&rdquo;<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/2014/05/15/map-recognition/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -383,100 +210,12 @@ def load_gif_url(url):
 <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 
-<h4>Social Button Alignment</h4>
-
-<p>The first issue that I came across was the vertical alignment of the &ldquo;social buttons&rdquo; on the bottom of each post. You can see the Facebook &ldquo;Like&rdquo; and &ldquo;Share&rdquo; buttons are lower than the Twitter and Google+ buttons:</p>
-
-<p><img src="/images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png" title="Facebook Alignment Issue" ></p>
-
-<p>which was fixed by following <a href="https://github.com/imathis/octopress/issues/176#issuecomment-6531879">this comment</a>.</p>
-
-<h4>Embedded Gist Rendering</h4>
-
-<p>The next issue was rendering of embedded <a href="https://gist.github.com/">Gists</a>. The rendered Gist look pretty crappy:</p>
-
-<p><img src="/images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png" title="Embedded Gist" ></p>
-
-<p>There are a number of people talking about the issue: <a href="http://devspade.com/blog/2013/08/06/fixing-gist-embeds-in-octopress/">here</a> and <a href="https://github.com/imathis/octopress/issues/847">here</a>. <a href="https://github.com/cancan101/cancan101.github.io/commit/d30d95694e5e4915b80e0082fb3ef1caac1f021b">The solution I ended up using was a combination of these plus some of my own CSS.</a></p>
-
-<h4>Meta Keywords and Description on Site Pages</h4>
-
-<p>Currently meta tags for keywords and description are only generated on post pages not on site level pages. A solution is offered <a href="http://qiang.hu/2013/04/octopress-seo-site-keywords-and-description.html">here</a> and a <a href="https://github.com/imathis/octopress/pull/1558">Pull Request</a>.</p>
-
-<h4>Blog in URL Path with Subdomain</h4>
-
-<p>I addressed this issue in a <a href="/2014/05/13/hello-world/#blog-path">previous post</a>.</p>
-
-<h4>post_url plugin</h4>
-
-<p>In order to use <code>post_url</code> to allow intelligent linking between posts, I had to follow <a href="http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts">this post</a>.</p>
-
-<p>Then I ran into this error message:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Liquid Exception: Tag '{%%20post_url%202014-05-13-hello-world%20%}' was not properly terminated with regexp: /\%}/ in atom.xml</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Following <a href="https://github.com/davidfstr/rdiscount/issues/75#issuecomment-22607869">this comment</a> fixed that issue.</p>
-
-<p>Since I wanted the ability to use named anchors, I made the following change to the <code>post_url.rb</code> file:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='diff'><span class='line'><span class="gd">--- plugins/post_url.rb.orig    2014-05-14 13:33:36.938495170 -0400</span>
-</span><span class='line'><span class="gi">+++ plugins/post_url.rb  2014-05-14 13:30:26.162496398 -0400</span>
-</span><span class='line'><span class="gu">@@ -25,8 +25,10 @@</span>
-</span><span class='line'>   class PostUrl &lt; Liquid::Tag
-</span><span class='line'>     def initialize(tag_name, post, tokens)
-</span><span class='line'>       super
-</span><span class='line'><span class="gi">+      post, anchor = post.strip.split</span>
-</span><span class='line'>       @orig_post = post.strip
-</span><span class='line'>       @post = PostComparer.new(@orig_post)
-</span><span class='line'><span class="gi">+      @anchor = anchor</span>
-</span><span class='line'>     end
-</span><span class='line'>
-</span><span class='line'>     def render(context)
-</span><span class='line'><span class="gu">@@ -34,7 +36,11 @@</span>
-</span><span class='line'>
-</span><span class='line'>       site.posts.each do |p|
-</span><span class='line'>         if @post == p
-</span><span class='line'><span class="gd">-          return p.url</span>
-</span><span class='line'><span class="gi">+          if @anchor.nil?</span>
-</span><span class='line'><span class="gi">+             return p.url</span>
-</span><span class='line'><span class="gi">+          else</span>
-</span><span class='line'><span class="gi">+             return p.url + &quot;#&quot; + @anchor</span>
-</span><span class='line'><span class="gi">+          end</span>
-</span><span class='line'>         end
-</span><span class='line'>       end
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I doubt these will be the last of the paper cuts that I uncover, so stay tuned for more fixes. I am starting to think <a href="http://www.art.net/~hopkins/Don/unix-haters/whinux/your-time.html">this applies</a> to Octopress, but I still enjoy the challenge and the learning experience.</p>
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/2014/05/14/octopress-paper-cuts/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -516,23 +255,12 @@ def load_gif_url(url):
 
 <p>For someone making $1.5-million-a-year running RBC’s  electronic-trading operation, I am surprised how little Brad understands about liquidity. I don’t just mean the complicated American equity markets; I mean liquidity in general. A simple analogy illustrates why the market is in fact not an illusion and how a similar experience can happen in other markets.</p>
 
-<p>Let’s say you are looking to buy airlines tickets to fly your entire extended family, all 30 of them, from Toronto to New York City. The first thing you, as a bargain hunting traveler do, is log onto your favorite travel agent site (be it Expedia, Travelocity, etc). You search for the cheapest fare and get ready to buy. Unfortunately most sites allow you to buy only six tickets at a time. So now you as a savvy shopper open your next four favorite travel agent sites and find the same flight. Assuming you are lucky (and the sites have access to the same fares), you sees the same price on all sites. Now it’s go time! You successfully buy six tickets on the first site and move on to the second site. Once again you are successful.  Great, 12 tickets down 18 to go.</p>
-
-<p>Now when you try to checkout on the third site, you receive a strange error message: “Unable to complete checkout. Please search again.” You scratch your head and hit the refresh button. The flight results reload, but the rates have gone up! You decide to move on to the fourth site and see what happens there. The same! You aren’t able to buy the tickets from your initial search and are once again presented with a higher fare.</p>
-
-<p>So what happened? The airline has a bunch of seats its want to sell. Since it’s a profit maximizing corporation, it employs “revenue management” to make as much money as possible on these seats. In the case of my analogy the airline has 12 seats at some low price it is trying to sell. It offers another batch at a higher price. The problem is there are only 12 seats at this price, but the airline doesn’t know which travel site its customers will use. So it offers those same 12 seats on <em>all</em> of those sites.  Once those 12 are sold, a new batch of seats is offered at a higher price<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
-
-<p>This is what Brad observers in the American equities market. There are give or take 12 public exchange whose aggregate offer he is observing. However like the airlines, market makers don’t know to which exchange liquidity takers (i.e. anyone that sends a market order) will go to. So they have some amount of stock they are comfortable selling, let’s say 2,000 shares. So they offer 1,000 shares on each of 12 venues. Now what Brad observes is a total of 12,000 shares offered. He tries to buy all 12,000 shares but ultimately only buys 2,000. This doesn’t mean the market is rigged, but rather his notion of liquidity, that is summing up everything he sees, is naive. It’s like trying to sum up the tickets offered on all of the travel websites and expecting the airline to sell all those tickets at the same price. This is even more crazy for an airline as the total number of tickets seen might exceeds the number of seats on the flight!</p>
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>The new fare is indicated on the ticket as a different <a href="https://en.wikipedia.org/wiki/Fare_basis_code#Booking_codes">booking code</a>.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/2014/05/13/fleeting-liquidity/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -570,22 +298,12 @@ def load_gif_url(url):
 
 <p>I have chosen to run my blog with <a href="http://octopress.org/">Octopress</a> rather than WordPress or Blogger. Why? <a href="http://decodize.com/html/moving-from-wordpress-to-octopress/">This blogger</a> and <a href="http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/">this blogger</a> do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using <a href="https://pages.github.com/">GitHub Pages</a>.</p>
 
-<p>The guide <a href="http://octopress.org/docs/setup/">here</a> does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions <a href="http://octopress.org/docs/deploying/github/#custom_domains">here</a> to create a CNAME file and then <a href="http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames">adding a simple &ldquo;CNAME Record&rdquo; (an alias) on GoDaddy</a> was all it took for <a href="http://blog.alexrothberg.com">blog.alexrothberg.com</a> to direct to <a href="http://cancan101.github.io">cancan101.github.io</a>.</p>
-
-<h3><a name="blog-path"></a>Simplifying the URL</h3>
-
-<p>The default behavior for Octopress is to put the blog content in the <code>/blog/</code> subdirectory in the URL. Since I am using a subdomain for my namespacing, this proved to be awkward. The URLs started with: <code>http://blog.alexrothberg.com/blog/</code>. <a href="http://xit0.org/2013/04/remove-redundant-slash-blog-prefix-from-octopress-website/">This post</a> offers an easy solution. I also found this <a href="https://github.com/imathis/octopress/issues/464">GitHub Issue</a> discussing the issue. You can see changes I made <a href="https://github.com/cancan101/cancan101.github.io/commit/fa2778c349f7d60a16ed073c17702404d159206b">here</a>. When done with the edits I also had to <a href="http://octopress.org/docs/updating/">run <code>rake update_source</code></a>.</p>
-
-<h3>Helpful Links</h3>
-
-<ul>
-<li><a href="http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/">http://blog.zerosharp.com/clone-your-octopress-to-blog-from-two-places/</a></li>
-<li><a href="http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/">http://learnaholic.me/2012/10/10/deploying-octopress-to-github-pages-and-setting-custom-subdomain-cname/</a></li>
-<li><a href="http://stackoverflow.com/questions/12328828/directory-structure-of-octopress">http://stackoverflow.com/questions/12328828/directory-structure-of-octopress</a></li>
-</ul>
-
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/2014/05/13/hello-world/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -602,6 +320,10 @@ def load_gif_url(url):
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/08/17/pylearn2-mlps-with-custom-data/">Pylearn2 MLPs With Custom Data</a>
+      </li>
     
       <li class="post">
         <a href="/2014/05/15/map-recognition/">Map Recognition</a>

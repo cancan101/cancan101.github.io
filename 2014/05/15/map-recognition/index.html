@@ -9,7 +9,7 @@
   <meta name="author" content="Alex Rothberg">
 
   
-  <meta name="description" content="I show identifying transformed US state maps.">
+  <meta name="description" content="I show identifying transformed US state maps using SVMs.">
   <meta name="keywords" content="image recognition, machine learning, Hu moments, image moments, sklearn, SVM, scikit-learn">
 
   <!-- http://t.co/dKP3o1e -->
@@ -117,6 +117,9 @@
 
 <p><img src="http://www.50states.com/maps/texas.gif" width="152" height="200" title="Original Texas Map" ></p>
 
+<!-- more -->
+
+
 <p>First some Python to get the list of all state names:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -185,14 +188,23 @@ def load_gif_url(url):
 
 <div><script src='https://gist.github.com/aca55ff569cb790d7757.js'></script>
 <noscript><pre><code>def get_bw(src):
-    return cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)</code></pre></noscript></div>
+    return cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+
+def show_color(src):
+    plt.imshow(cv2.cvtColor(src, cv2.COLOR_BGR2RGB))
+    _ = plt.xticks([]), plt.yticks([])
+
+def show_bw(bw):
+    plt.imshow(bw, cmap=&#39;gray&#39;)
+    _ = plt.xticks([]), plt.yticks([])</code></pre></noscript></div>
 
 
 <p>This is my first attempt at the algorithm:</p>
 
 <div><script src='https://gist.github.com/6b4bf88c74bcacfa9d9f.js'></script>
 <noscript><pre><code>def get_state_v0(state):
-    url = &quot;http://www.50states.com/maps/%s.gif&quot; % state
+    url = make_url(state)
+
     IN = load_gif_url(url)
 
     #Drop the text at the top
@@ -203,8 +215,9 @@ def load_gif_url(url):
   
     #invert colors (per docs for findContour)
     IMG = 255-IN_bw
-       
-    contours, hierarchy = cv2.findContours(IMG.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    
+    out_img = IMG.copy()
+    contours, hierarchy = cv2.findContours(out_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     threshold = 0.02
 
@@ -219,7 +232,6 @@ def load_gif_url(url):
         if cnt_len &gt; 50 and area &gt; 500:
             cv2.drawContours(img, contours, i, (0,0,0),thickness=cv2.cv.CV_FILLED) 
 
-    show_color(img)
     return img</code></pre></noscript></div>
 
 
@@ -233,7 +245,8 @@ def load_gif_url(url):
 
 <div><script src='https://gist.github.com/cb6a22142fc5fc4d149c.js'></script>
 <noscript><pre><code>def get_state_v1(state):
-    url = &quot;http://www.50states.com/maps/%s.gif&quot; % state
+    url = make_url(state)
+
     IN = load_gif_url(url)
 
     #Drop the text at the top
@@ -249,7 +262,8 @@ def load_gif_url(url):
     kernel = np.ones((3,3),np.uint8)
     IMG = cv2.dilate(IMG,kernel,iterations = 1)
     
-    contours, hierarchy = cv2.findContours(IMG.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    out_img = IMG.copy()
+    contours, hierarchy = cv2.findContours(out_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     threshold = 0.02
 
@@ -299,7 +313,7 @@ def load_gif_url(url):
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
 
-<p>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
+<p><a name="notebook-download"></a>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
 
 <h3>Extensions</h3>
 
@@ -389,6 +403,8 @@ def load_gif_url(url):
         <a class="basic-alignment left" href="/2014/05/14/octopress-paper-cuts/" title="Previous Post: Octopress Paper Cuts">&laquo; Octopress Paper Cuts</a>
       
       
+        <a class="basic-alignment right" href="/2014/08/17/pylearn2-mlps-with-custom-data/" title="Next Post: pylearn2 MLPs with Custom Data">pylearn2 MLPs with Custom Data &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -406,6 +422,10 @@ def load_gif_url(url):
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/08/17/pylearn2-mlps-with-custom-data/">Pylearn2 MLPs With Custom Data</a>
+      </li>
     
       <li class="post">
         <a href="/2014/05/15/map-recognition/">Map Recognition</a>
