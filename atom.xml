@@ -4,7 +4,7 @@
   <title><![CDATA[Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-08-18T01:02:11-04:00</updated>
+  <updated>2022-03-08T19:46:34-05:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -12,41 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[Pylearn2 MLPs With Custom Data]]></title>
-    <link href="http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data/"/>
-    <updated>2014-08-17T23:39:28-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/08/17/pylearn2-mlps-with-custom-data</id>
-    <content type="html"><![CDATA[<p>I decided to revisit the <a href="http://blog.alexrothberg.com/2014/05/15/map-recognition/">state map recognition problem</a>, only this time, rather than using an SVM on the Hu moments, I used an <a href="http://en.wikipedia.org/wiki/Multilayer_perceptron">MLP</a>. This is not the same as using a &ldquo;deep neural network&rdquo; on the raw image pixels themselves as I am still using using domain specific knowledge to build my features (the Hu moments).</p>
-
-<p>As of my writing this blog post, scikit-learn does not support MLPs (see <a href="https://github.com/scikit-learn/scikit-learn/wiki/GSoC-2014:-Extending-Neural-Networks-Module-for-Scikit-learn">this GSoC for plans to add this feature</a>). Instead I turn to <a href="http://deeplearning.net/software/pylearn2/">pylearn2</a>, the machine learning library from the <a href="http://lisa.iro.umontreal.ca/index_en.html">LISA lab</a>. While pylearn2 is <a href="http://fastml.com/pylearn2-in-practice/">not as easy to use as scikit-learn</a>, <a href="http://deeplearning.net/software/pylearn2/tutorial/notebook_tutorials.html">there are some great tutorials</a> to get you started.</p>
-
-<!-- more -->
-
-
-<p>I added this line to the bottom of <a href="http://blog.alexrothberg.com/2014/05/15/map-recognition/#notebook-download">my last notebook</a> to dump the Hu moments to a CSV so that I could start working in a fresh notebook:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">items</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">CSV_DATA</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In my new notebook, I performed the same feature normalization that had for the SVM: taking the log of the Hu moments and then mean centering and std-dev scaling those log-transformed values. I did actually test the MLP classifier without performing these normalization and like the SVM, classification performance degraded.</p>
-
-<p>With the data normalized, I shuffled the data and then split the data into test, validation and training sets (15%, 15%, 70% respectively). The simplest way I found to shuffle the rows of a Pandas DataFrame was: <code>df.ix[np.random.permutation(df.index)]</code>. I initially tried <code>df.apply(np.random.permutation)</code>, which lead to each column being shuffled independently (and my fits being horrible).</p>
-
-<p>I saved the three data sets out to three separate CSV files. I could then use the <a href="http://deeplearning.net/software/pylearn2/library/datasets.html#module-pylearn2.datasets.csv_dataset">CSVDataset</a> in the training YAML to load in the file. I created my YAML file by taking the one used for classifying the MNIST digits in the <a href="http://nbviewer.ipython.org/github/lisa-lab/pylearn2/blob/master/pylearn2/scripts/tutorials/multilayer_perceptron/multilayer_perceptron.ipynb">MLP tutorial</a>, modifying the datasets and changing <code>n_classes</code> (output classes) from 10 to 50 and <code>nvis</code> (input features) from 784 to 7. I also had to reduce <code>sparse_init</code> from 15 to 7 after a mildly helpful assertion error was thrown (I am not really sure what this variable does but it has to be &lt;= the number of input features). For good measure I also reduced the size of the first layer from 500 nodes to 50, given that I have far fewer features than the 784 pixels in the MNIST images.</p>
-
-<p>After that I ran the fit and saw that my <code>test_y_misclass</code> went to 0.0 in the final epochs. I was able to plot this convergence using the <a href="http://deeplearning.net/software/pylearn2/library/scripts.html#module-pylearn2.scripts.plot_monitor"><code>plot_monitor</code> script</a>. Since <a href="https://github.com/lisa-lab/pylearn2/issues/1034">I like to have my entire notebook self-contained</a>, I ended up modifying the plot_monitor script to run as a function call from within IPython Notebook (<a href="https://github.com/cancan101/pylearn2/compare/ipython_embed_script">see my fork</a>).</p>
-
-<p>Here is <a href="http://nbviewer.ipython.org/gist/cancan101/ea563e394ea968127e0e">the entire IPython Notebook</a>.</p>
-
-<p>I didn&rsquo;t tinker with regularization, but this topic is well addressed in the pylearn2 tutorials.</p>
-
-<p>In a future post, I plan to use CNN to classify the state map images without having to rely on domain specific knowledge for feature design.</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[Map Recognition]]></title>
@@ -145,7 +110,7 @@ def show_color(src):
     _ = plt.xticks([]), plt.yticks([])
 
 def show_bw(bw):
-    plt.imshow(bw, cmap=&#39;gray&#39;)
+    plt.imshow(bw, cmap='gray')
     _ = plt.xticks([]), plt.yticks([])</code></pre></noscript></div>
 
 
@@ -263,7 +228,7 @@ def show_bw(bw):
 
 <p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
 
-<p><a name="notebook-download"></a>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
+<p>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
 
 <h3>Extensions</h3>
 

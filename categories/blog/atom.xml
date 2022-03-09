@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Blog | Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/categories/blog/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2014-08-18T01:02:11-04:00</updated>
+  <updated>2022-03-08T19:46:34-05:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -41,7 +41,7 @@ There are a number of people talking about the issue: [here](http://devspade.com
 Currently meta tags for keywords and description are only generated on post pages not on site level pages. A solution is offered [here](http://qiang.hu/2013/04/octopress-seo-site-keywords-and-description.html) and a [Pull Request](https://github.com/imathis/octopress/pull/1558).
 
 ####Blog in URL Path with Subdomain
-I addressed this issue in a [previous post](/2014/05/13/hello-world/#blog-path).
+I addressed this issue in a [previous post](/2014/05/13/hello-world/#blog-path). 
 
 ####post_url plugin
 In order to use `post_url` to allow intelligent linking between posts, I had to follow [this post](http://www.drurly.com/blog/2012/06/01/octopress-linking-to-other-posts).

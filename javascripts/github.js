@@ -6,7 +6,7 @@ var github = (function(){
     var i = 0, fragment = '', t = $(target)[0];
 
     for(i = 0; i < repos.length; i++) {
-      fragment += '<li><a href="'+repos[i].html_url+'">'+repos[i].name+'</a><p>'+escapeHtml(repos[i].description||'')+'</p></li>';
+      fragment += '<li><a target="_blank" rel="noopener" href="'+repos[i].html_url+'">'+repos[i].name+'</a><p>'+escapeHtml(repos[i].description||'')+'</p></li>';
     }
     t.innerHTML = fragment;
   }
@@ -21,6 +21,7 @@ var github = (function(){
           if (!data || !data.data) { return; }
           for (var i = 0; i < data.data.length; i++) {
             if (options.skip_forks && data.data[i].fork) { continue; }
+            if (data.data[i].archived) { continue; }
             if(data.data[i].name == options.user + ".github.io") { continue; }
             repos.push(data.data[i]);
           }
