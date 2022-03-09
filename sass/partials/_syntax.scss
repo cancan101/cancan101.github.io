@@ -77,6 +77,7 @@ html .gist .gist-file {
       color: #474747 !important;
       @extend .code-title;
       &:hover { color: $link-color !important; }
+      white-space: normal;
     }
     a[href*=raw]{
       @extend .download-source;
@@ -217,7 +218,7 @@ pre, .highlight, .gist-highlight {
   &::-webkit-scrollbar-thumb:horizontal { background: $solar-scroll-thumb;  -webkit-border-radius: 4px; border-radius: 4px }
 }
 
-.highlight code { 
+.highlight code {
   @extend .pre-code; background: #000;
 }
 figure.code {
@@ -271,4 +272,3 @@ figure.code {
 table.lines{
   width: 100%;
 }
-
