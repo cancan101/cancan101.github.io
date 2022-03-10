@@ -1,0 +1,411 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Running Apache Superset Against a GraphQL API - Rothberg Writes</title>
+  <meta name="author" content="Alex Rothberg">
+
+  
+  <meta name="description" content="I develop a SQLAlchemy Dialect and associated Python DB-API database driver that allows Apache Superset to query data from GraphQL API.">
+  <meta name="keywords" content="business intelligence, graphql, apache superset, sqlalchemy">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Rothberg Writes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-50927313-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Rothberg Writes</a></h1>
+  
+    <h2>Reminiscences of an Option Operator.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:blog.alexrothberg.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Running Apache Superset Against a GraphQL API</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-03-09T17:39:58-05:00" pubdate data-updated="true">Mar 9<span>th</span>, 2022</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>In this blog post I walk through my journey of getting <a href="https://superset.apache.org/">Apache Superset</a> to connect to an arbitrary <a href="https://graphql.org/">GraphQL API</a>. You can <a href="https://github.com/cancan101/graphql-db-api">view the code I wrote to accomplish this here</a>. It&rsquo;s also <a href="https://pypi.org/project/sqlalchemy-graphqlapi/">published to PyPI</a>.</p>
+
+<!-- more -->
+
+
+<p>I wanted a way for Superset to pull data from a GraphQL API so that I could run this powerful and well used business intelligence (BI) tool on top of the breadth of data sources that can be exposed through GraphQL APIs. Unfortunately Superset wants to connect directly with the underlying database (from its landing page: &ldquo;Superset can connect to <a href="https://superset.apache.org/docs/databases/installing-database-drivers/">any SQL based datasource through SQLAlchemy</a>&rdquo;).</p>
+
+<p>Generally this constraint isn&rsquo;t that restrictive as data engineering best practices are to set up a centralized data warehouse to which various production databases would be synchronized. The database used for the data warehouse (e.g. Amazon Redshift, Google BigQuery) can then be queried directly by Superset.</p>
+
+<p>The alternative, &ldquo;lazy&rdquo; approach is to eschew setting up this secondary data storage system and instead point the BI tool directly at the production database (or, slightly better, at a <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html">read replica of that database</a>). This alternative approach is the route often chosen by small, fast moving, early-stage product engineering teams that either lack the resources or know-how to engage in proper data engineering. Or the engineers just need something &ldquo;quick and dirty&rdquo; to empower the business users to explore and analyze the data themselves and get building ad-hoc reports off the engineering team&rsquo;s plate.</p>
+
+<p>I found myself in in the latter scenario, where I wanted to quickly connect a BI tool to our systems without needing to set up a full data warehouse. There was a twist though. While our primary application&rsquo;s database is Postgres (which is supported by Superset), we augment that data using various external / third-party APIs and expose all of this through a GraphQL API<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. In some cases there are data transformations and business logic in the <a href="https://graphql.org/learn/execution/#root-fields-resolvers">resolvers</a> that I wanted to avoid having to re-implement in the BI tool.</p>
+
+<p>And with that I set out to connect Superset (my BI tool of choice) directly to my GraphQL API. It turns out someone else also had this idea and had kindly filed a <a href="https://github.com/apache/superset/issues/5389">GitHub ticket back in 2018</a>. The ticket unfortunately was closed with:<br>
+&nbsp;&nbsp;a) It&rsquo;s possible to extend the built-in connectors. &ldquo;The preferred way is to go through SQLAlchemy when possible.&rdquo;<br>
+&nbsp;&nbsp;b) &ldquo;All datasources ready for Superset consumption are single-table&rdquo;.<br>
+While (b) could be an issue with GraphQL as GraphQL does allow arbitrary return shapes, if we confine ourselves to top level <a href="https://graphql.org/learn/schema/#lists-and-non-null"><code>List</code>s</a> or <a href="https://relay.dev/graphql/connections.htm"><code>Connection</code>s</a> and flatten related entities, the data looks &ldquo;table-like&rdquo;. (a) boiled down to writing a <a href="https://docs.sqlalchemy.org/en/14/core/engines.html">SQLAlchemy <code>Dialect</code></a> and associated <a href="https://www.python.org/dev/peps/pep-0249/">Python DB-API database driver</a>. A quick skim of both the SQLAlchemy docs and the PEP got me a little worried at the what I might be attempting to bite off.</p>
+
+<p>Before I gave up hope, I decided to take a quick look at <a href="https://superset.apache.org/docs/databases/installing-database-drivers/">the other databases that Superset listed</a> to see if there was one I could perhaps base my approach off of. <a href="https://superset.apache.org/docs/databases/google-sheets">Support for Google Sheets</a> caught my attention and upon digging further, I saw it was based on a library called <a href="https://github.com/betodealmeida/shillelagh"><code>shillelagh</code></a>, whose docs say &ldquo;Shillelagh allows you to easily query non-SQL resources&rdquo; and &ldquo;New adapters are relatively easy to implement. There&rsquo;s a step-by-step tutorial that explains how to create a new adapter to an API.&rdquo; <em>Intriguing</em>. On the surface this was exactly what I was looking for.</p>
+
+<p>I took a look at the <a href="https://shillelagh.readthedocs.io/en/latest/development.html">step-by-step tutorial</a>, which very cleanly walks you through the process of developing a new <code>Adapter</code>. <a href="https://shillelagh.readthedocs.io/en/latest/adapters.html">From the docs</a>: &ldquo;Adapters are plugins that make it possible for Shillelagh to query APIs and other non-SQL resources.&rdquo; Perfect!</p>
+
+<p>The last important detail that I needed to figure out what how to map the arbitrary return shape from the API to something tabular. In particular I wanted the ability to leverage the graph nature of GraphQL and pull in related entities. However the graph may be infinitely deep, so I can&rsquo;t just crawl all related entities. I solved this problem by adding an &ldquo;include&rdquo; concept that specified what related entities should be loaded. this include is specified as a query parameter on the table name. In the case of <a href="https://graphql.org/swapi-graphql">SWAPI</a>, I might want to query the <code>allPeople</code> connection. This would then create columns for all the scalar fields of the <code>Nodes</code> returned. If I wanted to include the fields from the <code>species</code>, the table name would be <code>allPeople?include=species</code>. This would add to the columns the fields on the linked <code>Species</code>. This path could be further traversed as <code>allPeople?include=species,species__homeworld</code>.</p>
+
+<p>The majority of the logic is in the <a href="https://github.com/cancan101/graphql-db-api/blob/main/graphqldb/adapter.py"><code>Adapter</code> class</a> and it roughly boils down to:<br>
+1. Taking the table name (exposed on the GraphQL API as a field on <code>query</code>) along with any path traversal instructions and resolving the set of &ldquo;columns&rdquo; (flattened fields) and their types. This leverages <a href="https://graphql.org/learn/introspection/">the introspection functionality of GraphQL APIs</a>.<br>
+2. Generating the needed GraphQL query and then mapping the results to a row-like structure.</p>
+
+<p>I also <a href="https://github.com/cancan101/graphql-db-api/blob/main/graphqldb/dialect.py">wrote my own subclass of <code>APSWDialect</code></a>, which while not documented in shillelagh&rsquo;s tutorial was <a href="https://github.com/betodealmeida/shillelagh/blob/a427de0b2d1ac27402d70b8a2ae69468f1f3dcad/src/shillelagh/backends/apsw/dialects/gsheets.py">the approach taken for the <code>gsheets://</code> Dialect</a>. This comes with the benefit of being able to expose the list of tables supported by the <code>Dialect</code>. This class leverages the GraphQL.</p>
+
+<p>Once the <code>graphql</code> <code>Dialect</code> is <a href="https://superset.apache.org/docs/databases/docker-add-drivers">registered with SQLAlchemy</a>, adding the GraphQL API to Superset as a Database is as easy as creating a standard <a href="https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls">Database Url</a> where the <code>host</code> and <code>port</code> (optional) are the host and port of the API and the <code>database</code> portion is the path: <code>graphql://host(:port)/path/to/api</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>.</p>
+
+<p><img src="/images/post_images/2022-03-09-running-superset-against-graphql/database-config.png" title="Database Config" ></p>
+
+<p>Once the Database is defined, the standard UI for defining Datasets can then be used, The list of &ldquo;tables&rdquo; is auto-populated through introspection of the GraphQL API<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>:</p>
+
+<p><img src="/images/post_images/2022-03-09-running-superset-against-graphql/dataset-add.png" title="Adding a Dataset" ></p>
+
+<p>The columns names and their types can also be sync&#8217;ed from the Dataset:</p>
+
+<p><img src="/images/post_images/2022-03-09-running-superset-against-graphql/dataset-columns.png" title="Dataset Columns" ></p>
+
+<p>Once the Database and the Dataset are defined, the standard Superset tools like charting can be used:</p>
+
+<p><img src="/images/post_images/2022-03-09-running-superset-against-graphql/dataset-charting.png" title="Dataset Charting" ></p>
+
+<p>and exploring:</p>
+
+<p><img src="/images/post_images/2022-03-09-running-superset-against-graphql/dataset-explore.png" title="Dataset Exploring" ></p>
+
+<p>Longer term there are a whole bunch of great benefits of using accessing data through a GraphQL API which <a href="https://www.sspaeti.com/blog/analytics-api-with-graphql-the-next-level-of-data-engineering/">this blog post</a> explores further. GraphQL presents a centralized platform / solution for stitching together data from a number of internal (e.g. microservices) and external sources (SaaS tools + third-party APIs). It is also a convenient location to implement authorization and data redaction.</p>
+
+<h1>Appendix</h1>
+
+<h2>Development Experience</h2>
+
+<p>I love to do early stage development work in a <a href="https://jupyter.org/">Jupyter Notebook</a> with the <a href="https://ipython.readthedocs.io/en/stable/config/extensions/autoreload.html">autoreload extension</a> (basically hot reloading for Python). However this presented a bit of a problem as both <a href="https://docs.sqlalchemy.org/en/14/core/connections.html#registering-new-dialects">SQLAlchemy</a> and <a href="https://shillelagh.readthedocs.io/en/latest/development.html#informing-shillelagh-of-our-class">shillelagh</a> expected their respective <code>Dialect</code>s and <code>Adapter</code>s to be registered as <a href="https://packaging.python.org/en/latest/specifications/entry-points/">entry points</a>.</p>
+
+<p><a href="https://docs.sqlalchemy.org/en/14/core/connections.html#registering-dialects-in-process">SQLAlchemy&rsquo;s docs provided a way to do this In-Process</a>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">sqlalchemy.dialects</span> <span class="kn">import</span> <span class="n">registry</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&quot;graphql&quot;</span><span class="p">,</span> <span class="s">&quot;__main__&quot;</span><span class="p">,</span> <span class="s">&quot;APSWGraphQLDialect&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>However shillelagh did not (<a href="https://github.com/betodealmeida/shillelagh/issues/181">feature now requested</a>), but I was able to work around the issue:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">EntryPoint</span><span class="p">,</span> <span class="n">Distribution</span>
+</span><span class='line'><span class="kn">from</span> <span class="nn">shillelagh.backends.apsw</span> <span class="kn">import</span> <span class="n">db</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">db</span><span class="o">.</span><span class="n">iter_entry_points</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="n">EntryPoint</span><span class="p">(</span><span class="s">&quot;graphql&quot;</span><span class="p">,</span> <span class="s">&quot;__main__&quot;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;GraphQLAdapter&#39;</span><span class="p">,),</span> <span class="n">dist</span><span class="o">=</span><span class="n">Distribution</span><span class="p">())</span>
+</span><span class='line'><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>We use <a href="https://redis.io/">Redis</a> caching + <a href="https://github.com/graphql/dataloader">DataLoaders</a> to mitigate the cost of accessing these APIs.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>We do still need to specify the scheme (<code>http://</code> vs <code>https://</code>) to use when connecting to the GraphQL API. Options considered: <br>1. Two different Dialects (e.g.<code>graphql://</code> vs <code>graphqls://</code>), <br>2. Different Drivers (e.g. <code>graphql+http://</code> vs <code>graphql+https://</code>) or <br>3. Query parameter attached to the URL (e.g. <code>graphql://host:port/path?is_https=0</code>). <br>I went with (3) as most consistent with other URLs (<a href="https://jdbc.postgresql.org/documentation/head/ssl-client.html">e.g. for Postgres: <code>?sslmode=require</code></a>).<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>In order to set query params on the dataset name, I did have to toggle the <code>Virtual (SQL)</code> radio button, which then let me edit the name as free text:<br><img src="/images/post_images/2022-03-09-running-superset-against-graphql/dataset-name.png" title="Setting Dataset Name" ><a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Alex Rothberg</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-03-09T17:39:58-05:00" pubdate data-updated="true">Mar 9<span>th</span>, 2022</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/business-intelligence/'>business-intelligence</a>, <a class='category' href='/categories/graphql/'>graphql</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2014/05/15/map-recognition/" title="Previous Post: Map Recognition">&laquo; Map Recognition</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2022/03/09/running-superset-against-graphql/">Running Apache Superset Against a GraphQL API</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2014/05/15/map-recognition/">Map Recognition</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2014/05/14/octopress-paper-cuts/">Octopress Paper Cuts</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2014/05/13/fleeting-liquidity/">Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2014/05/13/hello-world/">Hello World!</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <p>
+    I graduated MIT in 2009 with degrees in Computer Science and Economics.<br>
+    I traded US equities, futures, and options from 2009&ndash;2014 with <a href="https://en.wikipedia.org/wiki/KCG_Holdings">KCG</a> / <a href="https://en.wikipedia.org/wiki/Global_Electronic_Trading_Company">GETCO</a>.<br>
+    Since 2014 I have worked at <a href="https://www.butterflynetwork.com">Butterfly Network</a> (on machine learning + web dev), CompIQ / Stella.ai (as VP Engineering), and now <a href="https://www.freeagency.com">Free Agency</a> (as Co-founder / CTO).
+  </p>
+  
+    <p><a target="_blank" rel="noopener" href="https://www.linkedin.com/in/alex-g-rothberg/">My LinkedIn &raquo;</a></p>
+  
+  
+    <p><a target="_blank" rel="noopener" href="https://stackoverflow.com/u/2638485/">My Stack Overflow &raquo;</a></p>
+  
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a target="_blank" rel="noopener" href="https://github.com/cancan101">@cancan101</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'cancan101',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2022 - Alex Rothberg -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alexrothberg';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/';
+        var disqus_url = 'http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
