@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Machine | Rothberg Writes]]></title>
-  <link href="http://blog.alexrothberg.com/categories/machine/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Machine-learning | Rothberg Writes]]></title>
+  <link href="http://blog.alexrothberg.com/categories/machine-learning/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-03-09T11:24:02-05:00</updated>
+  <updated>2022-03-09T19:09:52-05:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -81,7 +81,7 @@ With the images loaded, I believed the following operations should suffice to ge
 
 Here when I say significant polygons, I want to make sure the polygon bounds a non-trivial area and is not a stray mark.
 
-I use the following methods to convert image and to display the image using matplotlib: 
+I use the following methods to convert image and to display the image using matplotlib:
 <div><script src='https://gist.github.com/aca55ff569cb790d7757.js'></script>
 <noscript><pre><code>def get_bw(src):
     return cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
@@ -182,13 +182,13 @@ which works for all states:
 ####Image Recognition
 I needed some way of comparing two images which may have different rotations, scalings and/or translations. My first thought was to develop a process that normalizes an image to a [canonical](https://en.wikipedia.org/wiki/Canonical_form) orientation, scaling and position. I could then take an unlabeled image, and compare its standardized form to my set of canonicalized maps pixel-by-pixel with some distance metric such as MAE or MSE.
 
-How to normalize the image? [Image moments](https://en.wikipedia.org/wiki/Image_moment) immediately came to mind. The zeroth moment is the "mass" of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling. 
+How to normalize the image? [Image moments](https://en.wikipedia.org/wiki/Image_moment) immediately came to mind. The zeroth moment is the "mass" of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling.
 
 The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an [arithmetic average of black pixel coordinates](https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points). The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an "axis of orientation" which I can used to normalize rotation. Wikipedia provides the [answer](https://en.wikipedia.org/wiki/Image_moment#Examples_2) but a more complete explanation can be [found here](http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html).
 
 At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called ["rotation invariant moments"](https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments). These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the [Hu moments](http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments). The Hu moments are the most frequently used, but [Flusser shows there are superior choices](http://library.utia.cas.cz/prace/20000033.pdf). For convenience I will use the seven Hu moments as feature values in a machine learning classifier.
 
-In order to classify the images using the seven feature values, I decided to use [scikit-learn](http://scikit-learn.org/)'s [SVM Classifier](http://scikit-learn.org/stable/modules/svm.html#classification). I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I [made sure to scale my features](http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf).  
+In order to classify the images using the seven feature values, I decided to use [scikit-learn](http://scikit-learn.org/)'s [SVM Classifier](http://scikit-learn.org/stable/modules/svm.html#classification). I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I [made sure to scale my features](http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf).
 
 An SVM with a `linear` kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an "rbf" kernel and a default setting for `gamma` gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the [OpenCV method `matchShapes`](http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double matchShapes(InputArray contour1, InputArray contour2, int method, double parameter\)) which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.
 
@@ -218,11 +218,12 @@ el = lxml.etree.fromstring(str(text))
 urls = []
 for url in el:
     urls.append(url[0].text)
-    
+
 series = pd.Series(urls)
 series = series[series.str.contains("outline") & series.str.contains("countrys")]
 series = series[~series.str.contains("states") & ~series.str.contains("province")]
-```]]></content>
+```
+]]></content>
   </entry>
   
 </feed>
