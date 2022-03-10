@@ -62,7 +62,7 @@ and exploring:
 
 {% img /images/post_images/2022-03-09-running-superset-against-graphql/dataset-explore.png Dataset Exploring%}
 
-Longer term there are a whole bunch of great benefits of using GraphQL which [this blog post](https://www.sspaeti.com/blog/analytics-api-with-graphql-the-next-level-of-data-engineering/) explores further.
+Longer term there are a whole bunch of great benefits of using accessing data through a GraphQL API which [this blog post](https://www.sspaeti.com/blog/analytics-api-with-graphql-the-next-level-of-data-engineering/) explores further. GraphQL presents a centralized platform / solution for stitching together data from a number of internal (e.g. microservices) and external sources (SaaS tools + third-party APIs). It is also a convenient location to implement authorization and data redaction.
 
 # Appendix
 ## Development Experience
