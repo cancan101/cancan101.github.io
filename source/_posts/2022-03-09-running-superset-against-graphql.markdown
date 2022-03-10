@@ -7,7 +7,7 @@ categories: business-intelligence graphql
 description: I develop a SQLAlchemy Dialect and associated Python DB-API database driver that allows Apache Superset to query data from GraphQL API.
 keywords: business intelligence, graphql, apache superset, sqlalchemy
 ---
-In this blog post I walk through my journey of getting [Apache Superset](https://superset.apache.org/) to connect to an arbitrary [GraphQL API](https://graphql.org/). You can [view the code I wrote to accomplish this here](https://github.com/cancan101/graphql-db-api). At some point soon, I will also publish to PyPI.
+In this blog post I walk through my journey of getting [Apache Superset](https://superset.apache.org/) to connect to an arbitrary [GraphQL API](https://graphql.org/). You can [view the code I wrote to accomplish this here](https://github.com/cancan101/graphql-db-api). It's also [published to PyPI](https://pypi.org/project/sqlalchemy-graphqlapi/).
 <!-- more -->
 
 I wanted a way for Superset to pull data from a GraphQL API so that I could run this powerful and well used business intelligence (BI) tool on top of the breadth of data sources that can be exposed through GraphQL APIs. Unfortunately Superset wants to connect directly with the underlying database (from its landing page: "Superset can connect to [any SQL based datasource through SQLAlchemy](https://superset.apache.org/docs/databases/installing-database-drivers/)").
