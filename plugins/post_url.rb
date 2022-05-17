@@ -10,11 +10,11 @@ module Jekyll
       @slug = slug
       @date = Time.parse(date)
     end
-    
+
     # Octopress creates dates with hours and crap in them which are not in the file name
     # so just compare based on the date parts
     def ==(post)
-      cmp = self.date.strftime('%Y-%m-%d') <=> post.date.strftime('%Y-%m-%d')
+      cmp = self.date.strftime('%Y-%m-%d') <=> Time.parse(post.name.match(MATCHER)[2]).strftime('%Y-%m-%d')
       if 0 == cmp
        cmp = self.slug <=> post.slug
       end
@@ -33,7 +33,7 @@ module Jekyll
 
     def render(context)
       site = context.registers[:site]
-      
+
       site.posts.each do |p|
         if @post == p
           if @anchor.nil?
