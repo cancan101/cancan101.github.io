@@ -4,7 +4,7 @@
   <title><![CDATA[Rothberg Writes]]></title>
   <link href="http://blog.alexrothberg.com/atom.xml" rel="self"/>
   <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-03-10T13:03:08-05:00</updated>
+  <updated>2022-05-18T14:51:49-04:00</updated>
   <id>http://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -12,6 +12,104 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Creating a SQLAlchemy Dialect for Airtable]]></title>
+    <link href="http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/"/>
+    <updated>2022-05-18T12:37:12-04:00</updated>
+    <id>http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable</id>
+    <content type="html"><![CDATA[<p>In this post, I develop a SQLAlchemy Dialect for <a href="https://www.airtable.com/">Airtable</a>. This builds on <a href="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/">my prior work building a Dialect for GraphQL APIs</a>. With an Airtable Dialect, <a href="https://superset.apache.org/">Apache Superset</a> is able to use an Airtable Bases as a datasource. Pandas can load data from Airtable use its native SQL reader. The process of building the Dialect allowed me tp better understand the Airtable API and data model, which will be helpful when building further services on top of Airtable. These services might include directly exposing the Airtable Base with GraphQL<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> or UI builders backed by Airtable (like <a href="https://docs.retool.com/docs/airtable-integration">Retool</a>). You can <a href="https://github.com/cancan101/airtable-db-api">view the code for the Dialect here</a>. It&rsquo;s also <a href="https://pypi.org/project/sqlalchemy-airtable/">pip installable as <code>sqlalchemy-airtable</code></a>.</p>
+
+<!-- more -->
+
+
+<h2>Airtable</h2>
+
+<p>Airtable is a no-code / low-code SaaS tool, which <a href="https://en.wikipedia.org/wiki/Airtable">Wikipedia describes as</a>:</p>
+
+<blockquote><p>a spreadsheet-database hybrid, with the features of a database but applied to a spreadsheet&hellip;Users can create a database, set up column types, add records, link tables to one another</p></blockquote>
+
+<p>Airtable empowers non-technical (or lazy, technical) users to rapidly build various <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> applications such as CRMs, project trackers, product catalogs, etc. The Airtable team has done a great job publishing <a href="https://www.airtable.com/templates">a collection of templates</a> to help users get started. Airtable offers a lot of of great UI elements for CRUD operations that include a very powerful grid view, detail (record-level) views, and &ldquo;<a href="https://support.airtable.com/hc/en-us/articles/206058268-Guide-to-using-the-form-view">forms</a>&rdquo;, which are great for data entry. There are a whole bunch more view types documented <a href="https://support.airtable.com/hc/en-us/articles/360021502314-Getting-started-view-types">here</a>, including Gantt, Kanban, and calendar.</p>
+
+<h3>Data Visualization and Data Analysis</h3>
+
+<p>That being said, performing data visualization and data analysis is somewhat limited within the Airtable itself. Over time, the Airtable team has rolled out additional functionality from the <a href="https://support.airtable.com/hc/en-us/articles/203313975-The-summary-bar">summary bar</a>, which offers column-by-column summary stats, to apps (fka blocks), such as the <a href="https://support.airtable.com/hc/en-us/articles/115013249307-Pivot-table-app">pivot table</a> to now more comprehensive <a href="https://support.airtable.com/hc/en-us/sections/360007206734-Data-visualization">data visualization apps</a>. Even with the <a href="https://support.airtable.com/hc/en-us/articles/115013403608-Airtable-apps-overview">app / dashboard</a> concept and the associated <a href="https://airtable.com/marketplace">marketplace</a>, there is still a gap in what an experienced business or data analyst might be looking for and what is offered. Further. Airtable might be just one part of a larger data storage system used at with the organization such that even if a whole bunch more functionality were added, there would still be desire to perform analysis elsewhere. For example, while you might start by building a v1 of your CRM and ticketing systems in Airtable, over time you may find yourself migrating certain systems to purpose-built tools such as Salesforce or Zendesk. Ideally visualizations and analysis can be performed in one place that isn&rsquo;t vertically integrated with the data solution (not to mention in general avoiding vendor lock-in).</p>
+
+<p>Recognizing the desire of its users to use existing BI tools, the Airtable team has written a helpful blog piece, <a href="https://blog.airtable.com/connect-airtable-tableau-google-data-studio-power-bi/">&ldquo;How to connect Airtable to Tableau, Google Data Studio, and Power BI&rdquo;</a>. The prebuilt integrators discussed in the post are helpful if you use one of those BI tools and, in the case of Tableau and Data Studio, actually require an expensive, <a href="https://www.airtable.com/enterprise">enterprise Airtable account</a>.</p>
+
+<p>Railsware built <a href="https://www.coupler.io/sources/airtable">Coupler.io</a> (fka Airtable Importer) to make synchronizing data from Airtable into Google Sheets easy. This opens up using Google Sheets as a BI tool or simple data warehouse. There are a few other tools that attempt to synchronize from Airtable to traditional databases including <a href="https://www.sequin.io/">Sequin</a> (for CRM data) and <a href="https://www.cdata.com/kb/tech/airtable-sync-multiple-databases-ui.rst">CData</a> and others like <a href="https://www.baseql.com/">BaseQL</a> that expose Airtable with a GraphQL API.</p>
+
+<p>I do some of my analysis in Pandas and some in Superset and I wanted a way to connect either of these to Airtable. I am also &ldquo;lazy&rdquo; and looking for a solution that doesn&rsquo;t involved setting up a data warehouse and then running an ETL / synchronization tool.</p>
+
+<h2>Implementation</h2>
+
+<p>I figured I could achieve my objective by building a Shillelagh Adapter which would in effect create a SQLAlchemy Dialect exposing Airtable as a database and allow any Python tool leveraging SQLAlchemy or expecting a DB-API driver to connect.</p>
+
+<p>Fortunately Airtable offer a rich <a href="https://support.airtable.com/hc/en-us/articles/203313985-Public-REST-API">RESTful API</a> for both querying data as well as updating and inserting data. There are a number of client libraries for different languages wrapping this API. The library for <a href="https://github.com/airtable/airtable.js/">JavaScript is &ldquo;official&rdquo;</a> and is maintained by Airtable itself. There is a well-maintained, <a href="https://github.com/gtalarico/pyairtable">unofficial Python library</a> with blocking I/O and a less well maintained <a href="https://github.com/lfparis/airbase">library for Python based on asyncio (non-blocking)</a>. For the purposes of building the DB Dialect, I stick with blocking I/O as that library is better maintained and the underlying libraries used (Shillelagh &ndash;> APSW), <a href="https://github.com/rogerbinns/apsw/issues/325">won&rsquo;t be able to take advantage of non-blocking I/O</a>.</p>
+
+<h3>Metadata</h3>
+
+<p>In order to expose an Airtable Base as a database we need to know the schema. The &ldquo;schema&rdquo; in practice is the table names and for each table, the list of column names and for each column its data types. Fortunately Airtable offers a <a href="https://airtable.com/api/meta">Metadata API</a> that provides this info. Unfortunately, the feature is currently <a href="https://airtable.com/shrWl6yu8cI8C5Dh3">invite only / wait-listed</a>. I applied but have not been lucky enough to be accepted. I document a number of different workarounds for obtaining the metadata <a href="https://github.com/cancan101/airtable-db-api/wiki/Metadata">here</a>. They roughly boil town to a) hardcoding the table list + pulling down some sample data from each table and then guessing the field types, b) allowing the user to pass in a schema definition (can be offline scraped from the API docs page), or c) hitting an endpoint that exposes the metadata (e.g. shared view or base). Option a) is the most seamless / low-friction to the user whereas c) is the most reliable. I ended up starting with option a) but offering partial support for option c).</p>
+
+<p>There are a few gotchas with the guessing approach, the most annoying of which is that the <a href="https://community.airtable.com/t/field-missing-in-api/32355/3">Airtable API entirely omits fields within a record if the value is null or &ldquo;empty&rdquo;</a>. This is particularly problematic when peeking at the first <code>N</code> rows in cases in which new fields were added later on. <a href="https://community.airtable.com/t/sort-on-rest-api-by-createdtime-without-adding-new-column/47478/2">Currently there is no easy way to pull the last <code>N</code> rows</a>. Other fields may polymorphic, such as those coming from a formula. We err on the side of being conservative, for example assuming that even if we see only integers the field may at some point contain a float.</p>
+
+<h3>Leveraging the API</h3>
+
+<p>The Airtable &ldquo;backing store&rdquo; supports sorting, filtering, and page size limits<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. Shillelagh by way of APSW by way of <a href="https://www.sqlite.org/vtab.html">SQLite virtual tables</a> is able to <a href="https://www.sqlite.org/vtab.html#omit_constraint_checking_in_bytecode">opt-in to these features</a> to reduce the amount of work that has to be done in memory by SQLite and instead push the sorting and filtering work to the backing store. We just need to translate from <a href="https://shillelagh.readthedocs.io/en/latest/development.html#returning-data">what Shillelagh gives us to what the API expects</a>.</p>
+
+<p>Sorting is relatively easy as it just involves passing the the field names and the desired sort order to the API. Translating filters involves building an <a href="https://support.airtable.com/hc/en-us/articles/203255215-Formula-field-reference">Airtable formula</a> that evaluates as <code>true</code> for the rows we want to return. This was pretty straight forward except for 1) when dealing with <code>IS NULL</code> / <code>IS NOT NULL</code> filters and 2) filtering by <a href="https://support.airtable.com/hc/en-us/articles/360051564873-Record-ID"><code>ID</code></a> or <code>createdTime</code> (these two values are returned on every record). Writing a filter to select for nulls was tricky in that Airtable&rsquo;s concept of null is <code>BLANK()</code> <a href="https://community.airtable.com/t/blank-zero-problem/5662">which is also equal to the number <code>0</code></a>. Filters for <code>ID</code> and <code>createdTime</code> are able to leverage <a href="https://support.airtable.com/hc/en-us/articles/203255215-Formula-field-reference#record_functions">built-in functions of <code>RECORD_ID()</code> and <code>CREATED_TIME()</code></a>.</p>
+
+<h3>Value Encoding Gotchas</h3>
+
+<p>Once a given column&rsquo;s data type is known, decoding is generally pretty straightforward. The gotchas were: parsing relationships (Link records and Lookups), dealing with floats, and dealing with formulas. Relationships are always represented in the API as arrays, regardless of whether &ldquo;allow linking to multiple records&rdquo; is checked. In these cases, the array value needs to be flattened for support in SQLite / APSW. Floats are generally encoded according to the <a href="https://datatracker.ietf.org/doc/html/rfc8259">JSON Spec</a>; however, <a href="https://datatracker.ietf.org/doc/html/rfc8259#section-6">JSON does not support &ldquo;special&rdquo; values like Infinity of NaN</a>. Rather than sending a string value for these, the Airtable API returns a JSON object with a key of <code>specialValue</code> with a corresponding value. Errors resulting from formulas are likewise encoded as an object with a key of <code>error</code> and a corresponding error code (such as <code>#ERROR</code>).</p>
+
+<h2>Database Engine Specs (Superset)</h2>
+
+<p>A &ldquo;database engine spec&rdquo; is required in order to fully utilize Superset when connected to a new datasource type (i.e. our Dialect). Basically the spec tells Superset what features the DB supports. The spec is required for any sort of time series work that requires time-binning. There is a pretty confusing message about &ldquo;Grain&rdquo; and how the options are defined in &ldquo;source code&rdquo;:
+<img src="http://blog.alexrothberg.com/images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/time-grain.png" title="Time Grain (Granularity) for Visualization" ></p>
+
+<p>Ultimately I found <a href="https://preset.io/blog/building-database-connector/#database-engine-specs">this blog post from Preset</a> and this <a href="https://github.com/apache/superset/blob/e69f6292c210d32548308769acd8e670630e9ecd/superset/db_engine_specs/gsheets.py">implementation for the GSheets datasource</a>, which I <a href="https://github.com/cancan101/airtable-db-api/blob/218713cf70b026b731f9dc27a4a3a9ed659291cc/airtabledb/db_engine_specs.py">based mine on</a>. You do also have to <a href="https://github.com/cancan101/airtable-db-api/blob/218713cf70b026b731f9dc27a4a3a9ed659291cc/setup.py#L111-L113">register the spec using an <code>entry_point</code></a>. Once I added this Spec, I was then offered a full set of time grains to choose from. Superset does also now call out the datasource&rsquo;s &ldquo;backend&rdquo;:
+<img src="http://blog.alexrothberg.com/images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/database-backend.png" title="Database Backends" ></p>
+
+<p>I am not currently taking advantage of the UI / parameters (it is all pretty undocumented), but from what I see it looks as if I can tweak the UI to gather specific values from the user.</p>
+
+<h2>JOINing across Tables</h2>
+
+<p>With our Airtable Tables now accessible in SQLAlchemy as database tables, I figured I would try using SQL to perform a <code>JOIN</code> between two Tables in the Base. The <code>JOIN</code> worked, in that the data returned was correct and as expected; however, the performance was terrible and I observed far more calls to the Airtable API than expected and filters were not being passed in. For example if I were joining tables <code>A</code> and <code>B</code> on <code>B.a_id = A.id</code>, I would we see <code>get_data</code> for <code>A</code> called once (with no filter) and then <code>get_data</code> for <code>B</code> called <code>n</code> times (with no filters passed in) where <code>n</code> is the number of rows in <code>A</code>.</p>
+
+<p>I thought this might be due to SQLite&rsquo;s use of a sequential scans rather than an index scan and tried writing a <a href="https://shillelagh.readthedocs.io/en/latest/development.html#estimating-query-cost"><code>get_cost</code> function</a> to provide additional hints to the query planner. While this does cause SQLite to issues filtered queries to the API, cutting down on the amount of data fetched, it does not reduce the number of queries sent to the API. With a <code>get_data</code> function, I see a single call to <code>get_data</code> on <code>A</code> and then <code>n</code> called to <code>get_data</code> for <code>B</code>, but I now see <code>ID=</code> filters being passed in on each call. Using <a href="https://www.sqlite.org/eqp.html"><code>EXPLAIN QUERY PLAN</code></a>, I see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SCAN a VIRTUAL TABLE INDEX 42:[[], []]
+</span><span class='line'>SCAN b VIRTUAL TABLE INDEX 42:[[[143, 2]], []]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>whereas without a <code>get_cost</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SCAN a VIRTUAL TABLE INDEX 42:[[], []]
+</span><span class='line'>SCAN b VIRTUAL TABLE INDEX 42:[[], []]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Unfortunately the issue ultimately is that SQLite does not try to hold the tables in memory during a query and instead relies on the Virtual table implementation to do so. Without any caching in our Adapter, this means that our <code>get_data</code> methods is called <code>n</code> times on one of the two tables.</p>
+
+<p>I opened <a href="https://sqlite.org/forum/forumpost/7e2802db01">this discussion</a> on the SQLite forum where the tentative conclusion is to add a <code>SQLITE_INDEX_SCAN_MATERIALIZED</code> to tell SQLite to materialize the whole virtual table (keyed on the used constraints).<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup></p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>For example building a <a href="https://www.graphql-mesh.com/docs/handlers/handlers-introduction">&ldquo;Source Handler&rdquo; for GraphQL Mesh</a> for Airtable or a clone of <a href="https://www.baseql.com/">BaseQL</a>.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>While the API supports a <code>LIMIT</code> (page size) concept, it uses cursor-based pagination so specifying <code>OFFSET</code> is not possible.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>There are some other hints to SQLite that might be important for query optimization such as <a href="https://www.sqlite.org/vtab.html#outputs"><code>SQLITE_INDEX_SCAN_UNIQUE</code></a>:<blockquote><p>the idxFlags field may be set to SQLITE_INDEX_SCAN_UNIQUE to indicate that the virtual table will return only zero or one rows given the input constraints.</p></blockquote><br>However this requires <a href="https://github.com/rogerbinns/apsw/issues/329">some changes to APSW</a>. Additionally indicating the estimated number of rows a query will return, which also <a href="https://github.com/rogerbinns/apsw/issues/188">requires a change to APSW</a>.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running Apache Superset Against a GraphQL API]]></title>
