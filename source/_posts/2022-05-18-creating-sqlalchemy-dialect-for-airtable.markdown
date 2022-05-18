@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Creating a SQLAlchemy Dialect for Airtable"
-date: 2022-05-17 12:37:12 -0400
+date: 2022-05-18 12:37:12 -0400
 comments: true
 categories: business-intelligence no-code
 description: I develop a SQLAlchemy Dialect and associated Python DB-API database driver that allows Apache Superset to query data from Airtable.
@@ -48,10 +48,10 @@ Once a given column's data type is known, decoding is generally pretty straightf
 
 ## Database Engine Specs (Superset)
 A "database engine spec" is required in order to fully utilize Superset when connected to a new datasource type (i.e. our Dialect). Basically the spec tells Superset what features the DB supports. The spec is required for any sort of time series work that requires time-binning. There is a pretty confusing message about "Grain" and how the options are defined in "source code":
-{% img /images/post_images/2022-05-17-creating-sqlalchemy-dialect-for-airtable/time-grain.png Time Grain (Granularity) for Visualization%}
+{% img /images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/time-grain.png Time Grain (Granularity) for Visualization%}
 
 Ultimately I found [this blog post from Preset](https://preset.io/blog/building-database-connector/#database-engine-specs) and this [implementation for the GSheets datasource](https://github.com/apache/superset/blob/e69f6292c210d32548308769acd8e670630e9ecd/superset/db_engine_specs/gsheets.py), which I [based mine on](https://github.com/cancan101/airtable-db-api/blob/218713cf70b026b731f9dc27a4a3a9ed659291cc/airtabledb/db_engine_specs.py). You do also have to [register the spec using an `entry_point`](https://github.com/cancan101/airtable-db-api/blob/218713cf70b026b731f9dc27a4a3a9ed659291cc/setup.py#L111-L113). Once I added this Spec, I was then offered a full set of time grains to choose from. Superset does also now call out the datasource's "backend":
-{% img /images/post_images/2022-05-17-creating-sqlalchemy-dialect-for-airtable/database-backend.png Database Backends%}
+{% img /images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/database-backend.png Database Backends%}
 
 I am not currently taking advantage of the UI / parameters (it is all pretty undocumented), but from what I see it looks as if I can tweak the UI to gather specific values from the user.
 
