@@ -57,9 +57,20 @@ I am not currently taking advantage of the UI / parameters (it is all pretty und
 
 
 ## JOINing across Tables
-With our Airtable Tables now accessible in SQLAlchemy as database tables, I figured I would try using SQL to perform a `JOIN` between two Tables in the Base. The `JOIN` worked; however, the performance was terrible and I observed far more calls to the Airtable API than expected.
+With our Airtable Tables now accessible in SQLAlchemy as database tables, I figured I would try using SQL to perform a `JOIN` between two Tables in the Base. The `JOIN` worked, in that the data returned was correct and as expected; however, the performance was terrible and I observed far more calls to the Airtable API than expected and filters were not being passed in. For example if I were joining tables `A` and `B` on `B.a_id = A.id`, I would we see `get_data` for `A` called once (with no filter) and then `get_data` for `B` called `n` times (with no filters passed in) where `n` is the number of rows in `A`.
 
-I thought this might be due to SQLite's use of a sequential scans rather than an index scan and tried writing a [`get_cost` function](https://shillelagh.readthedocs.io/en/latest/development.html#estimating-query-cost) to provide additional hints to the query planner. While this does cause SQLite to issues filtered queries to the API, cutting down on the amount of data fetched, it does not reduce the number of queries sent to the API. Unfortunately the issue ultimately is that SQLite does not try to hold the tables in memory during a query and instead relies on the Virtual table implementation to do so. Without any caching in our Adapter, this means that our `get_data` methods is called `n` times on one of the two tables (where `n` is the number of rows in the other table).
+I thought this might be due to SQLite's use of a sequential scans rather than an index scan and tried writing a [`get_cost` function](https://shillelagh.readthedocs.io/en/latest/development.html#estimating-query-cost) to provide additional hints to the query planner. While this does cause SQLite to issues filtered queries to the API, cutting down on the amount of data fetched, it does not reduce the number of queries sent to the API. With a `get_data` function, I see a single call to `get_data` on `A` and then `n` called to `get_data` for `B`, but I now see `ID=` filters being passed in on each call. Using [`EXPLAIN QUERY PLAN`](https://www.sqlite.org/eqp.html), I see:
+```
+SCAN a VIRTUAL TABLE INDEX 42:[[], []]
+SCAN b VIRTUAL TABLE INDEX 42:[[[143, 2]], []]
+```
+whereas without a `get_cost`:
+```
+SCAN a VIRTUAL TABLE INDEX 42:[[], []]
+SCAN b VIRTUAL TABLE INDEX 42:[[], []]
+```
+
+Unfortunately the issue ultimately is that SQLite does not try to hold the tables in memory during a query and instead relies on the Virtual table implementation to do so. Without any caching in our Adapter, this means that our `get_data` methods is called `n` times on one of the two tables.
 
 I opened [this discussion](https://sqlite.org/forum/forumpost/7e2802db01) on the SQLite forum where the tentative conclusion is to add a `SQLITE_INDEX_SCAN_MATERIALIZED` to tell SQLite to materialize the whole virtual table (keyed on the used constraints).[^sqlite-perf]
 
