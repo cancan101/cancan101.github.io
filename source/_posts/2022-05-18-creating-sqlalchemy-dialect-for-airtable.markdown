@@ -6,7 +6,7 @@ comments: true
 categories: business-intelligence no-code
 description: I develop a SQLAlchemy Dialect and associated Python DB-API database driver that allows Apache Superset to query data from Airtable.
 keywords: business intelligence, airtable, apache superset, SQLAlchemy
-published: false
+published: true
 ---
 In this post, I develop a SQLAlchemy Dialect for [Airtable](https://www.airtable.com/). This builds on [my prior work building a Dialect for GraphQL APIs]({% post_url 2022-03-09-running-superset-against-graphql %}). With an Airtable Dialect, [Apache Superset](https://superset.apache.org/) is able to use an Airtable Bases as a datasource. Pandas can load data from Airtable use its native SQL reader. The process of building the Dialect allowed me tp better understand the Airtable API and data model, which will be helpful when building further services on top of Airtable. These services might include directly exposing the Airtable Base with GraphQL[^airtable-graphql] or UI builders backed by Airtable (like [Retool](https://docs.retool.com/docs/airtable-integration)). You can [view the code for the Dialect here](https://github.com/cancan101/airtable-db-api). It's also [pip installable as `sqlalchemy-airtable`](https://pypi.org/project/sqlalchemy-airtable/).
 <!-- more -->
