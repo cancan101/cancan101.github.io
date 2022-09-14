@@ -6,7 +6,7 @@ comments: true
 categories: software-project
 description: I develop a system that allows the sender of an email message to track when their message is opened by their recipient(s).
 keywords: chrome extension, email tracking, email open tracking, gmail.js
-published: false
+published: true
 ---
 
 I develop a system for tracking email "opens," which allows the sender of an email message to know when their message is opened (read) by the recipient(s). The system comprises (1) a Chrome extension that adds functionality to the Gmail website, (2) a backend server that tracks the email sends and then the subsequent opens, and (3) an addon for the mobile (Android / iOS) Gmail apps.
