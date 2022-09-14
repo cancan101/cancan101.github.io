@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Rothberg Writes]]></title>
-  <link href="http://blog.alexrothberg.com/atom.xml" rel="self"/>
-  <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-09-14T00:35:44-04:00</updated>
-  <id>http://blog.alexrothberg.com/</id>
+  <link href="https://blog.alexrothberg.com/atom.xml" rel="self"/>
+  <link href="https://blog.alexrothberg.com/"/>
+  <updated>2022-09-14T01:30:46-04:00</updated>
+  <id>https://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Building an Email Open Tracking System - Part 1]]></title>
-    <link href="http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/"/>
+    <link href="https://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/"/>
     <updated>2022-09-14T00:26:00-04:00</updated>
-    <id>http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1</id>
+    <id>https://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1</id>
     <content type="html"><![CDATA[<p>I develop a system for tracking email &ldquo;opens,&rdquo; which allows the sender of an email message to know when their message is opened (read) by the recipient(s). The system comprises (1) a Chrome extension that adds functionality to the Gmail website, (2) a backend server that tracks the email sends and then the subsequent opens, and (3) an addon for the mobile (Android / iOS) Gmail apps.</p>
 
 <!-- more -->
@@ -25,7 +25,7 @@
 
 <p>Want to know when someone opens your emails? How about knowing <em>each</em> time someone opens an email you sent? In the era of iMessage or WhatsApp, where the concept of <a href="https://www.dictionary.com/e/slang/left-on-read/">&ldquo;left on read&rdquo;</a> has entered the common lexicon, tracking the &ldquo;when&rdquo; of your message being read is near and dear to our hearts. Email clients, such as Outlook, have offered have offered <a href="https://en.wikipedia.org/wiki/Email_tracking#Read-receipts">&ldquo;read-receipts&rdquo; (technically MDN &ndash; Message Disposition Notifications)</a> since as far back as 1998 (see <a href="https://datatracker.ietf.org/doc/html/rfc2298">original RFC</a>). Read receipts rely on the recipient&rsquo;s agent (email client) supporting the feature and opting-in.</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/doc-outlook-block-tracking-read-receipt-4.png" title="Dialog asking recipient if they are okay sending a read receipt" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/doc-outlook-block-tracking-read-receipt-4.png" title="Dialog asking recipient if they are okay sending a read receipt" ></p>
 
 <p>An alternative that has existed for a while but has recently become more popular is the <a href="https://en.wikipedia.org/wiki/Spy_pixel">&ldquo;tracker pixel&rdquo;</a> (known less affectionately as the &ldquo;spy pixel&rdquo;). This technique involves putting a small (think 1x1) pixel in the HTML body of the email<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. The user&rsquo;s agent will in general<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> load the image when the email message is opened. The server delivering the image is able to record the image access along with the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent">User Agent string</a> and IP of the requesting client<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.</p>
 
@@ -65,11 +65,11 @@
 
 <p>The next limitation that I ran into was that even though there was a <a href="https://github.com/KartikTalwar/gmail.js#gmailobservebeforeaction-callback"><code>before</code> send hook</a> for email message, there is no way from within that hook to actually modify the body of the message. From the docs, it seems like this functionality used to exist. Unfortunately, due to changes on with Gmail page, there was no longer a way to modify the message as it is sent. The workaround here is to <a href="https://github.com/KartikTalwar/gmail.js/issues/479#issuecomment-445751298">modify the body of the email message <em>before</em> the Gmail send button is &ldquo;clicked.&rdquo;</a> This can be done either by eagerly inserting the HTML into the body of the message when the compose window is first opened or by &ldquo;proxying&rdquo; the button click with a new button that runs the injection code and <em>then</em> calls the original button (<a href="https://github.com/KartikTalwar/gmail.js#gmaildomcomposecompose_el">using the <code>send</code> method</a>). The proxy button (<a href="https://github.com/KartikTalwar/gmail.js#gmailtoolsadd_compose_buttoncompose_ref-content_html-onclick_action-custom_style_class">created using <code>add_compose_button</code></a>) may be a totally new button or it might just be made to obscure the original button. I opted for the latter which has the benefit of providing an UI fo the user to choose to track vs not track.</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-window.png" title="A new &#34;Track&#34; button is added to the Compose Window" alt="A new &#34;Track&#34; button is added to the Compose Window"></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-window.png" title="A new &#34;Track&#34; button is added to the Compose Window" alt="A new &#34;Track&#34; button is added to the Compose Window"></p>
 
 <p>I used a similar approach to extend the &ldquo;Scheduled send&rdquo; button:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-more-menu.png" title="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window" alt="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window"></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-more-menu.png" title="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window" alt="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window"></p>
 
 <p>The flow for sending a tracked message now looks like:</p>
 
@@ -84,22 +84,22 @@
 
 <p>The last limitation is that there is no easy way to modify the contents of the prior messages in the compose window. In other words, while I can insert HTML into the current message, I cannot access (i.e. to remove old trackers) from the prior portion of the email thread. The hack here would be to trigger the &ldquo;Show trimmed content&rdquo; button so that the full contents of the thread are downloaded.</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/trimmed-content.png" title="&#34;Show trimmed content&#34; button for downloading the entire thread" alt="&#34;Show trimmed content&#34; button for downloading the entire thread"></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/trimmed-content.png" title="&#34;Show trimmed content&#34; button for downloading the entire thread" alt="&#34;Show trimmed content&#34; button for downloading the entire thread"></p>
 
 <p>Now that we are successfully able to track sent messages using our Chrome extension, I needed away for the sender of the email to see that their messages had been opened. I first added a UI element to the Inbox view that shows when the last email was opened:
-<img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-toolbar.png" title="A tracking info button added to the toolbar on the Inbox" ></p>
+<img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-toolbar.png" title="A tracking info button added to the toolbar on the Inbox" ></p>
 
 <p>and when clicked opens a modal with a list of the most recent message opens. Clicking on any of the them directly opens the relevant thread:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-tracking-dialog.png" title="A list of recent email opens that can be clicked" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-tracking-dialog.png" title="A list of recent email opens that can be clicked" ></p>
 
 <p>On the thread view, I also added a button to the toolbar:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-toolbar.png" title="A tracking info button added to the toolbar on the Thread view" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-toolbar.png" title="A tracking info button added to the toolbar on the Thread view" ></p>
 
 <p>which when clicked also opens a modal showing all of the views of the current thread along with additional information:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-tracking-dialog.png" title="Each View of the current Thread is shown along with additional information" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-tracking-dialog.png" title="Each View of the current Thread is shown along with additional information" ></p>
 
 <p>Another challenge I faced was being able to use React for developing my UI. Unfortunately gmail-js uses jQuery (and has an imperative API) and the Gmail page itself likes to kill, and then rebuild, the toolbar when it wants. I was able to work around this with a combination of <code>MutationObserver</code> and <code>unmountComponentAtNode</code> (<a href="https://github.com/cancan101/email-tracking-extension/blob/838e32ed614ed54767be73dd773c8f73aae54767/src/gmailJsLoader.ts#L164-L202">see code</a>). I was then able to use the <a href="https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi">React Developer Tools</a> to confirm that I was not leaking React Elements.</p>
 
@@ -169,10 +169,10 @@
   
   <entry>
     <title type="html"><![CDATA[Creating a SQLAlchemy Dialect for Airtable]]></title>
-    <link href="http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/"/>
+    <link href="https://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/"/>
     <updated>2022-05-18T12:37:12-04:00</updated>
-    <id>http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable</id>
-    <content type="html"><![CDATA[<p>In this post, I develop a SQLAlchemy Dialect for <a href="https://www.airtable.com/">Airtable</a>. This builds on <a href="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/">my prior work building a Dialect for GraphQL APIs</a>. With an Airtable Dialect, <a href="https://superset.apache.org/">Apache Superset</a> is able to use an Airtable Bases as a datasource. Pandas can load data directly from Airtable using its native SQL reader. The process of building the Dialect allowed me to better understand the Airtable API and data model, which will be helpful when building further services on top of Airtable. These services might include directly exposing the Airtable Base with GraphQL<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> or UI builders backed by Airtable (like <a href="https://docs.retool.com/docs/airtable-integration">Retool</a>). You can <a href="https://github.com/cancan101/airtable-db-api">view the code for the Dialect here</a>. It&rsquo;s also <a href="https://pypi.org/project/sqlalchemy-airtable/">pip installable as <code>sqlalchemy-airtable</code></a>.</p>
+    <id>https://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable</id>
+    <content type="html"><![CDATA[<p>In this post, I develop a SQLAlchemy Dialect for <a href="https://www.airtable.com/">Airtable</a>. This builds on <a href="https://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/">my prior work building a Dialect for GraphQL APIs</a>. With an Airtable Dialect, <a href="https://superset.apache.org/">Apache Superset</a> is able to use an Airtable Bases as a datasource. Pandas can load data directly from Airtable using its native SQL reader. The process of building the Dialect allowed me to better understand the Airtable API and data model, which will be helpful when building further services on top of Airtable. These services might include directly exposing the Airtable Base with GraphQL<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> or UI builders backed by Airtable (like <a href="https://docs.retool.com/docs/airtable-integration">Retool</a>). You can <a href="https://github.com/cancan101/airtable-db-api">view the code for the Dialect here</a>. It&rsquo;s also <a href="https://pypi.org/project/sqlalchemy-airtable/">pip installable as <code>sqlalchemy-airtable</code></a>.</p>
 
 <!-- more -->
 
@@ -220,10 +220,10 @@
 <h2>Database Engine Specs (Superset)</h2>
 
 <p>A &ldquo;database engine spec&rdquo; is required in order to fully utilize Superset when connected to a new datasource type (i.e. our Dialect). Basically the spec tells Superset what features the DB supports. The spec is required for any sort of time series work that requires time-binning. There is a pretty confusing message about &ldquo;Grain&rdquo; and how the options are defined in &ldquo;source code&rdquo;:
-<img src="http://blog.alexrothberg.com/images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/time-grain.png" title="Time Grain (Granularity) for Visualization" ></p>
+<img src="https://blog.alexrothberg.com/images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/time-grain.png" title="Time Grain (Granularity) for Visualization" ></p>
 
 <p>Ultimately I found <a href="https://preset.io/blog/building-database-connector/#database-engine-specs">this blog post from Preset</a> and this <a href="https://github.com/apache/superset/blob/e69f6292c210d32548308769acd8e670630e9ecd/superset/db_engine_specs/gsheets.py">implementation for the GSheets datasource</a>, which I <a href="https://github.com/cancan101/airtable-db-api/blob/218713cf70b026b731f9dc27a4a3a9ed659291cc/airtabledb/db_engine_specs.py">based mine on</a>. You do also have to <a href="https://github.com/cancan101/airtable-db-api/blob/218713cf70b026b731f9dc27a4a3a9ed659291cc/setup.py#L111-L113">register the spec using an <code>entry_point</code></a>. Once I added this Spec, I was then offered a full set of time grains to choose from. Superset does also now call out the datasource&rsquo;s &ldquo;backend&rdquo;:
-<img src="http://blog.alexrothberg.com/images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/database-backend.png" title="Database Backends" ></p>
+<img src="https://blog.alexrothberg.com/images/post_images/2022-05-18-creating-sqlalchemy-dialect-for-airtable/database-backend.png" title="Database Backends" ></p>
 
 <p>I am not currently taking advantage of the UI / parameters (it is all pretty undocumented), but from what I see it looks as if I can tweak the UI to gather specific values from the user.</p>
 
@@ -267,9 +267,9 @@
   
   <entry>
     <title type="html"><![CDATA[Running Apache Superset Against a GraphQL API]]></title>
-    <link href="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/"/>
+    <link href="https://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/"/>
     <updated>2022-03-09T17:39:58-05:00</updated>
-    <id>http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql</id>
+    <id>https://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql</id>
     <content type="html"><![CDATA[<p>In this blog post I walk through my journey of getting <a href="https://superset.apache.org/">Apache Superset</a> to connect to an arbitrary <a href="https://graphql.org/">GraphQL API</a>. You can <a href="https://github.com/cancan101/graphql-db-api">view the code I wrote to accomplish this here</a>. It&rsquo;s also <a href="https://pypi.org/project/sqlalchemy-graphqlapi/">published to PyPI</a>.</p>
 
 <!-- more -->
@@ -302,23 +302,23 @@ While (b) could be an issue with GraphQL as GraphQL does allow arbitrary return 
 
 <p>Once the <code>graphql</code> <code>Dialect</code> is <a href="https://superset.apache.org/docs/databases/docker-add-drivers">registered with SQLAlchemy</a>, adding the GraphQL API to Superset as a Database is as easy as creating a standard <a href="https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls">Database Url</a> where the <code>host</code> and <code>port</code> (optional) are the host and port of the API and the <code>database</code> portion is the path: <code>graphql://host(:port)/path/to/api</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>.</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/database-config.png" title="Database Config" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/database-config.png" title="Database Config" ></p>
 
 <p>Once the Database is defined, the standard UI for defining Datasets can then be used, The list of &ldquo;tables&rdquo; is auto-populated through introspection of the GraphQL API<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-add.png" title="Adding a Dataset" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-add.png" title="Adding a Dataset" ></p>
 
 <p>The columns names and their types can also be sync&#8217;ed from the Dataset:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-columns.png" title="Dataset Columns" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-columns.png" title="Dataset Columns" ></p>
 
 <p>Once the Database and the Dataset are defined, the standard Superset tools like charting can be used:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-charting.png" title="Dataset Charting" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-charting.png" title="Dataset Charting" ></p>
 
 <p>and exploring:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-explore.png" title="Dataset Exploring" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-explore.png" title="Dataset Exploring" ></p>
 
 <p>Longer term there are a whole bunch of great benefits of using accessing data through a GraphQL API which <a href="https://www.sspaeti.com/blog/analytics-api-with-graphql-the-next-level-of-data-engineering/">this blog post</a> explores further. GraphQL presents a centralized platform / solution for stitching together data from a number of internal (e.g. microservices) and external sources (SaaS tools + third-party APIs). It is also a convenient location to implement authorization and data redaction.</p>
 
@@ -363,7 +363,7 @@ While (b) could be an issue with GraphQL as GraphQL does allow arbitrary return 
 <li id="fn:2">
 <p>We do still need to specify the scheme (<code>http://</code> vs <code>https://</code>) to use when connecting to the GraphQL API. Options considered: <br>1. Two different Dialects (e.g.<code>graphql://</code> vs <code>graphqls://</code>), <br>2. Different Drivers (e.g. <code>graphql+http://</code> vs <code>graphql+https://</code>) or <br>3. Query parameter attached to the URL (e.g. <code>graphql://host:port/path?is_https=0</code>). <br>I went with (3) as most consistent with other URLs (<a href="https://jdbc.postgresql.org/documentation/head/ssl-client.html">e.g. for Postgres: <code>?sslmode=require</code></a>).<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 <li id="fn:3">
-<p>In order to set query params on the dataset name, I did have to toggle the <code>Virtual (SQL)</code> radio button, which then let me edit the name as free text:<br><img src="http://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-name.png" title="Setting Dataset Name" ><a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<p>In order to set query params on the dataset name, I did have to toggle the <code>Virtual (SQL)</code> radio button, which then let me edit the name as free text:<br><img src="https://blog.alexrothberg.com/images/post_images/2022-03-09-running-superset-against-graphql/dataset-name.png" title="Setting Dataset Name" ><a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -372,16 +372,16 @@ While (b) could be an issue with GraphQL as GraphQL does allow arbitrary return 
   
   <entry>
     <title type="html"><![CDATA[Map Recognition]]></title>
-    <link href="http://blog.alexrothberg.com/2014/05/15/map-recognition/"/>
+    <link href="https://blog.alexrothberg.com/2014/05/15/map-recognition/"/>
     <updated>2014-05-15T15:27:53-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/05/15/map-recognition</id>
+    <id>https://blog.alexrothberg.com/2014/05/15/map-recognition</id>
     <content type="html"><![CDATA[<p>I wanted to write a program to identify a map of a US state.</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/texas.png" width="105" height="110" title="Map of Texas" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/texas.png" width="105" height="110" title="Map of Texas" ></p>
 
 <p>To make life a little more challenging, this program had to work even if the maps are rotated and are no longer in the standard <a href="https://en.wikipedia.org/wiki/Map#Orientation_of_maps">&ldquo;North is up&rdquo; orientation</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. Further the map images may be off-center and rescaled:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/texas-rotate.png" width="140" height="110" title="Map of Texas Rotated and Translated" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/texas-rotate.png" width="140" height="110" title="Map of Texas Rotated and Translated" ></p>
 
 <h4>Data Set</h4>
 
@@ -509,7 +509,7 @@ def show_bw(bw):
 
 <p>Which seems to work for most states, but fails for Massachusetts:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/massachusetts-fail.png" title="Failure with Massachusetts" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/massachusetts-fail.png" title="Failure with Massachusetts" ></p>
 
 <p>This seems to be due to a break somewhere in the outline. A simple <code>dilate</code> with a <code>3x3</code> kernel solved the problem.</p>
 
@@ -555,7 +555,7 @@ def show_bw(bw):
 
 <p>which works for all states:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/states.png" title="Solid Fills US States" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/states.png" title="Solid Fills US States" ></p>
 
 <h4>Image Recognition</h4>
 
@@ -573,17 +573,17 @@ def show_bw(bw):
 
 <p>I changed my features to be the signum&#8217;ed log of the absolute values of the Hu Moments, and then applied standard scaling. This log transform of the Hu moments is pretty common in the literature, see: <a href="http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf">Conley</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/confusion-final.png" title="Confusion Matrix" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/confusion-final.png" title="Confusion Matrix" ></p>
 
 <h4>Blurring</h4>
 
 <p>While not part of the original problem specification, I wanted to see how this classification technique would fare under image blurring. I show below classification scores as a function of increasing amounts of blur. Using a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=blur#blur">normalized box filter</a>:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/blur.png" width="400" height="400" title="Blurring" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/blur.png" width="400" height="400" title="Blurring" ></p>
 
 <p>and a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur">Gaussian Blur</a>:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
 
 <p>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
 
@@ -628,9 +628,9 @@ def show_bw(bw):
   
   <entry>
     <title type="html"><![CDATA[Octopress Paper Cuts]]></title>
-    <link href="http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/"/>
+    <link href="https://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/"/>
     <updated>2014-05-14T09:16:22-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts</id>
+    <id>https://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts</id>
     <content type="html"><![CDATA[<p>Now that I have started writing a few blog posts, I have come across a few <a href="https://en.wikipedia.org/wiki/Paper_cut_bug">&ldquo;paper cuts&rdquo;</a> with the (current) Octopress framework. Some quick background on Octopress: I am currently running the v2.0 version of Octopress which appears to have been released in <a href="http://octopress.org/2011/07/23/octopress-20-surfaces/">July 2011</a>. According to <a href="http://sasheldon.com/blog/2013/07/07/waiting-for-octopress-2-successor/">this blog</a>, the v2.1 version was scrapped in favor of a more significant v3.0. From the <a href="https://twitter.com/octopress">Twitter feed</a> and the <a href="https://github.com/octopress/octopress">GitHub page</a>, v3.0 seems to be in active development but not yet released. That leaves me with using v2.0 for the time being.</p>
 
 <blockquote class="twitter-tweet" lang="en"><p><a href="https://twitter.com/amesbah">@amesbah</a> The current release is a bit neglected right now. The next version is being worked on quite a bit though. <a href="https://t.co/a3cogy8z2O">https://t.co/a3cogy8z2O</a></p>&mdash; Octopress (@octopress) <a href="https://twitter.com/octopress/statuses/466799796465184768">May 15, 2014</a></blockquote>
@@ -646,7 +646,7 @@ def show_bw(bw):
 
 <p>The first issue that I came across was the vertical alignment of the &ldquo;social buttons&rdquo; on the bottom of each post. You can see the Facebook &ldquo;Like&rdquo; and &ldquo;Share&rdquo; buttons are lower than the Twitter and Google+ buttons:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png" title="Facebook Alignment Issue" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-14-octopress-paper-cuts/facebook-alignment.png" title="Facebook Alignment Issue" ></p>
 
 <p>which was fixed by following <a href="https://github.com/imathis/octopress/issues/176#issuecomment-6531879">this comment</a>.</p>
 
@@ -654,7 +654,7 @@ def show_bw(bw):
 
 <p>The next issue was rendering of embedded <a href="https://gist.github.com/">Gists</a>. The rendered Gist look pretty crappy:</p>
 
-<p><img src="http://blog.alexrothberg.com/images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png" title="Embedded Gist" ></p>
+<p><img src="https://blog.alexrothberg.com/images/post_images/2014-05-14-octopress-paper-cuts/gist-embed-issues.png" title="Embedded Gist" ></p>
 
 <p>There are a number of people talking about the issue: <a href="http://devspade.com/blog/2013/08/06/fixing-gist-embeds-in-octopress/">here</a> and <a href="https://github.com/imathis/octopress/issues/847">here</a>. <a href="https://github.com/cancan101/cancan101.github.io/commit/d30d95694e5e4915b80e0082fb3ef1caac1f021b">The solution I ended up using was a combination of these plus some of my own CSS.</a></p>
 
@@ -664,7 +664,7 @@ def show_bw(bw):
 
 <h4>Blog in URL Path with Subdomain</h4>
 
-<p>I addressed this issue in a <a href="http://blog.alexrothberg.com/2014/05/13/hello-world/#blog-path">previous post</a>.</p>
+<p>I addressed this issue in a <a href="https://blog.alexrothberg.com/2014/05/13/hello-world/#blog-path">previous post</a>.</p>
 
 <h4>post_url plugin</h4>
 
@@ -739,9 +739,9 @@ def show_bw(bw):
   
   <entry>
     <title type="html"><![CDATA[Brad Katsuyama’s Fleeting Liquidity: A Simple Analogy for What He Sees]]></title>
-    <link href="http://blog.alexrothberg.com/2014/05/13/fleeting-liquidity/"/>
+    <link href="https://blog.alexrothberg.com/2014/05/13/fleeting-liquidity/"/>
     <updated>2014-05-13T11:00:12-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/05/13/fleeting-liquidity</id>
+    <id>https://blog.alexrothberg.com/2014/05/13/fleeting-liquidity</id>
     <content type="html"><![CDATA[<p>From Michael Lewis’ <a href="http://www.nytimes.com/2014/04/06/magazine/flash-boys-michael-lewis.html">The Wolf Hunters of Wall Street</a>:</p>
 
 <blockquote><p>Before RBC acquired this supposed state-of-the-art electronic-trading firm, Katsuyama’s computers worked as he expected them to. Suddenly they didn’t. It used to be that when his trading screens showed 10,000 shares of Intel offered at $22 a share, it meant that he could buy 10,000 shares of Intel for $22 a share. He had only to push a button. By the spring of 2007, however, when he pushed the button to complete a trade, the offers would vanish. In his seven years as a trader, he had always been able to look at the screens on his desk and see the stock market. <strong>Now the market as it appeared on his screens was an illusion</strong>.</p></blockquote>
@@ -771,9 +771,9 @@ def show_bw(bw):
   
   <entry>
     <title type="html"><![CDATA[Hello World!]]></title>
-    <link href="http://blog.alexrothberg.com/2014/05/13/hello-world/"/>
+    <link href="https://blog.alexrothberg.com/2014/05/13/hello-world/"/>
     <updated>2014-05-13T00:56:09-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/05/13/hello-world</id>
+    <id>https://blog.alexrothberg.com/2014/05/13/hello-world</id>
     <content type="html"><![CDATA[<p>This is my <a href="https://en.wikipedia.org/wiki/Hello_world_program">inaugural, requisite</a> post on my personal blog.</p>
 
 <p>I have chosen to run my blog with <a href="http://octopress.org/">Octopress</a> rather than WordPress or Blogger. Why? <a href="http://decodize.com/html/moving-from-wordpress-to-octopress/">This blogger</a> and <a href="http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/">this blogger</a> do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using <a href="https://pages.github.com/">GitHub Pages</a>.</p>

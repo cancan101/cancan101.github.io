@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://blog.alexrothberg.com/sitemap.xml 
+Sitemap: https://blog.alexrothberg.com/sitemap.xml 

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: No-code | Rothberg Writes]]></title>
-  <link href="http://blog.alexrothberg.com/categories/no-code/atom.xml" rel="self"/>
-  <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-09-14T00:35:44-04:00</updated>
-  <id>http://blog.alexrothberg.com/</id>
+  <link href="https://blog.alexrothberg.com/categories/no-code/atom.xml" rel="self"/>
+  <link href="https://blog.alexrothberg.com/"/>
+  <updated>2022-09-14T01:30:46-04:00</updated>
+  <id>https://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Creating a SQLAlchemy Dialect for Airtable]]></title>
-    <link href="http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/"/>
+    <link href="https://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/"/>
     <updated>2022-05-18T12:37:12-04:00</updated>
-    <id>http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable</id>
+    <id>https://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable</id>
     <content type="html"><![CDATA[In this post, I develop a SQLAlchemy Dialect for [Airtable](https://www.airtable.com/). This builds on [my prior work building a Dialect for GraphQL APIs](/2022/03/09/running-superset-against-graphql/). With an Airtable Dialect, [Apache Superset](https://superset.apache.org/) is able to use an Airtable Bases as a datasource. Pandas can load data directly from Airtable using its native SQL reader. The process of building the Dialect allowed me to better understand the Airtable API and data model, which will be helpful when building further services on top of Airtable. These services might include directly exposing the Airtable Base with GraphQL[^airtable-graphql] or UI builders backed by Airtable (like [Retool](https://docs.retool.com/docs/airtable-integration)). You can [view the code for the Dialect here](https://github.com/cancan101/airtable-db-api). It's also [pip installable as `sqlalchemy-airtable`](https://pypi.org/project/sqlalchemy-airtable/).
 <!-- more -->
 [^airtable-graphql]: For example building a ["Source Handler" for GraphQL Mesh](https://www.graphql-mesh.com/docs/handlers/handlers-introduction) for Airtable or a clone of [BaseQL](https://www.baseql.com/).

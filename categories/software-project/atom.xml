@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Software-project | Rothberg Writes]]></title>
-  <link href="http://blog.alexrothberg.com/categories/software-project/atom.xml" rel="self"/>
-  <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-09-14T00:35:44-04:00</updated>
-  <id>http://blog.alexrothberg.com/</id>
+  <link href="https://blog.alexrothberg.com/categories/software-project/atom.xml" rel="self"/>
+  <link href="https://blog.alexrothberg.com/"/>
+  <updated>2022-09-14T01:30:46-04:00</updated>
+  <id>https://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Building an Email Open Tracking System - Part 1]]></title>
-    <link href="http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/"/>
+    <link href="https://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/"/>
     <updated>2022-09-14T00:26:00-04:00</updated>
-    <id>http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1</id>
+    <id>https://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1</id>
     <content type="html"><![CDATA[I develop a system for tracking email "opens," which allows the sender of an email message to know when their message is opened (read) by the recipient(s). The system comprises (1) a Chrome extension that adds functionality to the Gmail website, (2) a backend server that tracks the email sends and then the subsequent opens, and (3) an addon for the mobile (Android / iOS) Gmail apps.
 
 <!-- more -->

@@ -1,45 +1,45 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://blog.alexrothberg.com/2014/05/13/hello-world/</loc>
+        <loc>https://blog.alexrothberg.com/2014/05/13/hello-world/</loc>
         <lastmod>2022-03-08T19:53:28-05:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/2014/05/13/fleeting-liquidity/</loc>
+        <loc>https://blog.alexrothberg.com/2014/05/13/fleeting-liquidity/</loc>
         <lastmod>2022-03-08T19:53:28-05:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/</loc>
+        <loc>https://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/</loc>
         <lastmod>2022-03-08T19:53:28-05:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/2014/05/15/map-recognition/</loc>
+        <loc>https://blog.alexrothberg.com/2014/05/15/map-recognition/</loc>
         <lastmod>2022-03-09T19:10:06-05:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/</loc>
+        <loc>https://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/</loc>
         <lastmod>2022-09-12T15:11:56-04:00</lastmod>
     </url>
     <url>
         <loc>
-            http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/
+            https://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/
         </loc>
         <lastmod>2022-07-20T14:10:15-04:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/</loc>
+        <loc>https://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/</loc>
         <lastmod>2022-09-14T00:35:36-04:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/</loc>
+        <loc>https://blog.alexrothberg.com/</loc>
         <lastmod>2022-09-14T00:35:36-04:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/archives/</loc>
+        <loc>https://blog.alexrothberg.com/archives/</loc>
         <lastmod>2022-09-14T00:35:36-04:00</lastmod>
     </url>
     <url>
-        <loc>http://blog.alexrothberg.com/robots.txt</loc>
+        <loc>https://blog.alexrothberg.com/robots.txt</loc>
         <lastmod>2022-03-08T19:53:28-05:00</lastmod>
     </url>
 </urlset>

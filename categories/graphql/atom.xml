@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Graphql | Rothberg Writes]]></title>
-  <link href="http://blog.alexrothberg.com/categories/graphql/atom.xml" rel="self"/>
-  <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-09-14T00:35:44-04:00</updated>
-  <id>http://blog.alexrothberg.com/</id>
+  <link href="https://blog.alexrothberg.com/categories/graphql/atom.xml" rel="self"/>
+  <link href="https://blog.alexrothberg.com/"/>
+  <updated>2022-09-14T01:30:46-04:00</updated>
+  <id>https://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Running Apache Superset Against a GraphQL API]]></title>
-    <link href="http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/"/>
+    <link href="https://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/"/>
     <updated>2022-03-09T17:39:58-05:00</updated>
-    <id>http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql</id>
+    <id>https://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql</id>
     <content type="html"><![CDATA[In this blog post I walk through my journey of getting [Apache Superset](https://superset.apache.org/) to connect to an arbitrary [GraphQL API](https://graphql.org/). You can [view the code I wrote to accomplish this here](https://github.com/cancan101/graphql-db-api). It's also [published to PyPI](https://pypi.org/project/sqlalchemy-graphqlapi/).
 <!-- more -->
 
