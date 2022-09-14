@@ -18,21 +18,25 @@
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/2022/03/09/running-superset-against-graphql/</loc>
-        <lastmod>2022-03-10T13:03:02-05:00</lastmod>
+        <lastmod>2022-09-12T15:11:56-04:00</lastmod>
     </url>
     <url>
         <loc>
             http://blog.alexrothberg.com/2022/05/18/creating-sqlalchemy-dialect-for-airtable/
         </loc>
-        <lastmod>2022-05-18T17:59:54-04:00</lastmod>
+        <lastmod>2022-07-20T14:10:15-04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/</loc>
+        <lastmod>2022-09-14T00:31:32-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/</loc>
-        <lastmod>2022-05-18T17:59:54-04:00</lastmod>
+        <lastmod>2022-09-14T00:31:32-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/archives/</loc>
-        <lastmod>2022-05-18T17:59:54-04:00</lastmod>
+        <lastmod>2022-09-14T00:31:32-04:00</lastmod>
     </url>
     <url>
         <loc>http://blog.alexrothberg.com/robots.txt</loc>

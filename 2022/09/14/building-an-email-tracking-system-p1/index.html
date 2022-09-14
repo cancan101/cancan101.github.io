@@ -1,0 +1,462 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Building an Email Open Tracking System - Part 1 - Rothberg Writes</title>
+  <meta name="author" content="Alex Rothberg">
+
+  
+  <meta name="description" content="I develop a system that allows the sender of an email message to track when their message is opened by their recipient(s).">
+  <meta name="keywords" content="chrome extension, email tracking, email open tracking, gmail.js">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Rothberg Writes" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-50927313-2']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Rothberg Writes</a></h1>
+  
+    <h2>Reminiscences of an Option Operator.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:blog.alexrothberg.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Building an Email Open Tracking System - Part 1</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-09-14T00:26:00-04:00" pubdate data-updated="true">Sep 14<span>th</span>, 2022</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I develop a system for tracking email &ldquo;opens,&rdquo; which allows the sender of an email message to know when their message is opened (read) by the recipient(s). The system comprises (1) a Chrome extension that adds functionality to the Gmail website, (2) a backend server that tracks the email sends and then the subsequent opens, and (3) an addon for the mobile (Android / iOS) Gmail apps.</p>
+
+<!-- more -->
+
+
+<p>Want to know when someone opens your emails? How about knowing <em>each</em> time someone opens an email you sent? In the era of iMessage or WhatsApp, where the concept of <a href="https://www.dictionary.com/e/slang/left-on-read/">&ldquo;left on read&rdquo;</a> has entered the common lexicon, tracking the &ldquo;when&rdquo; of your message being read is near and dear to our hearts. Email clients, such as Outlook, have offered have offered <a href="https://en.wikipedia.org/wiki/Email_tracking#Read-receipts">&ldquo;read-receipts&rdquo; (technically MDN &ndash; Message Disposition Notifications)</a> since as far back as 1998 (see <a href="https://datatracker.ietf.org/doc/html/rfc2298">original RFC</a>). Read receipts rely on the recipient&rsquo;s agent (email client) supporting the feature and opting-in.</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/doc-outlook-block-tracking-read-receipt-4.png" title="Dialog asking recipient if they are okay sending a read receipt" ></p>
+
+<p>An alternative that has existed for a while but has recently become more popular is the <a href="https://en.wikipedia.org/wiki/Spy_pixel">&ldquo;tracker pixel&rdquo;</a> (known less affectionately as the &ldquo;spy pixel&rdquo;). This technique involves putting a small (think 1x1) pixel in the HTML body of the email<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. The user&rsquo;s agent will in general<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> load the image when the email message is opened. The server delivering the image is able to record the image access along with the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent">User Agent string</a> and IP of the requesting client<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.</p>
+
+<p>I set out to build an email open tracking system that employs a tracking pixel approach. I assume the sender uses Gmail / Google Workspace (fka GSuite) and accesses the site through Chrome (later I expand to the mobile Apps). No such requirements are imposed on the recipient. There are of course already a number of Extensions in the Chrome Web Store that offer this functionality such as <a href="https://chrome.google.com/webstore/detail/email-tracker-for-gmail-m/ndnaehgpjlnokgebbaldlmgkapkpjkkb">Mailtrack</a> and <a href="https://chrome.google.com/webstore/detail/yesware-for-chrome/gkjnkapjmjfpipfcccnjbjcbgdnahpjp">Yesware</a>; however, both as a challenge to myself and because of privacy concerns I decided build my own.</p>
+
+<p>The system boils down to 3 parts:</p>
+
+<ol>
+<li>Injecting the HTML for the tracker pixel into the message body on email send</li>
+<li>Capturing the &ldquo;view&rdquo; events when the recipient&rsquo;s agent renders the email (i.e. the recipient reads / opens the email)</li>
+<li>Presenting those &ldquo;view&rdquo; events to the the sender</li>
+</ol>
+
+
+<p>I built parts (1) and (3) using a <a href="https://developer.chrome.com/docs/extensions/">Chrome extension</a> that modifies the UI of the Gmail webpage. Part (3) was built using a server that served up a minimal pixel that could be tied to the email it was inserted into, while at the same time capturing information on the the client. I later re-built parts (1) and (3) using a <a href="https://developers.google.com/apps-script/add-ons/gmail">Google Apps Script</a> so that I was able to send and see the email open tracking from within the a Gmail mobile app.</p>
+
+<h2>Implementation</h2>
+
+<p>The repos for the components can be found here:</p>
+
+<ol>
+<li><a href="https://github.com/cancan101/email-tracking-extension">Chrome Extension</a></li>
+<li><a href="https://github.com/cancan101/email-tracking-api">Server</a></li>
+<li><a href="https://github.com/cancan101/email-tracking-gmail-addon">Google Apps Script (Gmail Addon)</a></li>
+</ol>
+
+
+<h3>Chrome Extension</h3>
+
+<p>The Chrome extension needs to (1) modify, as needed, the body of email messages as sent, (2) provide a UI for the sender to control when tracking occurs, (3) display when previously tracked messages are opened, and (4) prevent self-tracks (i.e. we want to exclude our <em>own</em> opens of an email from being counted as a view).</p>
+
+<p>I leveraged <a href="https://github.com/lxieyang/chrome-extension-boilerplate-react">this boilerplate project</a> to get started developing my Chrome extension using TypeScript, React, and Webpack. After I had already built for a while, I did realize the project is no longer maintained<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup> and there are probably better starters out there now (e.g. <a href="https://github.com/chibat/chrome-extension-typescript-starter">1</a> or <a href="https://github.com/Godiswill/cra-crx-boilerplate">2</a>). Fortunately the project had been updated to use <a href="https://developer.chrome.com/docs/extensions/mv3/intro/">Manifest V3</a>, which while <a href="https://adguard.com/en/blog/how-ad-blocking-is-done.html">more limited in functionality than V2</a> will be needed as <a href="https://developer.chrome.com/docs/extensions/mv3/mv2-sunset/">V2 is being deprecated in 2023</a>.</p>
+
+<p>I then found <a href="https://github.com/KartikTalwar/gmail.js">gmail-js</a>, which is a library purpose built for browser extensions that look to interface with the Gmail page. It offers functions to modify the UI (e.g. inserting buttons on the compose window and modifying the toolbars) as well as hooks for various events (e.g. a message being sent). The library is under active development, well documented, and supports TypeScript. It also has a <a href="https://github.com/josteink/gmailjs-node-boilerplate">great boilerplate project</a> to help get started. When looking for other libraries to help with building a browser extension for Gmail, I also found <a href="https://www.inboxsdk.com/">InboxSDK</a>, a commercial offering similar to gmail-js, but with more of a focus on extending the Gmail UI. Ultimately gmail-js offered enough functionality for extending the UI that InboxSDK was unnecessary.</p>
+
+<p>There are some limitations in gmail-js that I had to work around. The first limitation, stated right in the README, is that &ldquo;Gmail.js does not work as a content-script.&rdquo; <a href="https://developer.chrome.com/docs/extensions/mv3/content_scripts/">From the Chrome docs</a>: &ldquo;Content scripts are files that run in the context of web pages.&rdquo; Basically content scripts are standard (and simplest) way an extension injects JavaScript into a webpage. And unfortunately they don&rsquo;t work with gmail-js<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>. An example workaround is shown in the boilerplate project and involves a <a href="https://github.com/josteink/gmailjs-node-boilerplate/blob/6a194cc21a44f7e0da4e6f8951625f28f9859a17/src/extensionInjector.js">content script that inserts a script tag to then download the <em>actual</em> js code</a>.</p>
+
+<p>The next limitation that I ran into was that even though there was a <a href="https://github.com/KartikTalwar/gmail.js#gmailobservebeforeaction-callback"><code>before</code> send hook</a> for email message, there is no way from within that hook to actually modify the body of the message. From the docs, it seems like this functionality used to exist. Unfortunately, due to changes on with Gmail page, there was no longer a way to modify the message as it is sent. The workaround here is to <a href="https://github.com/KartikTalwar/gmail.js/issues/479#issuecomment-445751298">modify the body of the email message <em>before</em> the Gmail send button is &ldquo;clicked.&rdquo;</a> This can be done either by eagerly inserting the HTML into the body of the message when the compose window is first opened or by &ldquo;proxying&rdquo; the button click with a new button that runs the injection code and <em>then</em> calls the original button (<a href="https://github.com/KartikTalwar/gmail.js#gmaildomcomposecompose_el">using the <code>send</code> method</a>). The proxy button (<a href="https://github.com/KartikTalwar/gmail.js#gmailtoolsadd_compose_buttoncompose_ref-content_html-onclick_action-custom_style_class">created using <code>add_compose_button</code></a>) may be a totally new button or it might just be made to obscure the original button. I opted for the latter which has the benefit of providing an UI fo the user to choose to track vs not track.</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-window.png" title="A new &#34;Track&#34; button is added to the Compose Window" alt="A new &#34;Track&#34; button is added to the Compose Window"></p>
+
+<p>I used a similar approach to extend the &ldquo;Scheduled send&rdquo; button:</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-more-menu.png" title="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window" alt="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window"></p>
+
+<p>The flow for sending a tracked message now looks like:</p>
+
+<ol>
+<li>User opens Compose window (either for a new message or a reply)</li>
+<li>An alternative &ldquo;Send&rdquo; button is injected (the red &ldquo;Track&rdquo; button in the image above)</li>
+<li>User composes email message normally</li>
+<li>Upon clicking the alternative Send button, a tracking image (with a unique <code>id</code>) is injected into the email body (as additional HTML). We may also want to remove / modify old trackers (i.e. by removing HTML).</li>
+<li>When the email is eventually sent (some time after (4)), the <code>id</code> for the tracker is sent to our server.</li>
+</ol>
+
+
+<p>The last limitation is that there is no easy way to modify the contents of the prior messages in the compose window. In other words, while I can insert HTML into the current message, I cannot access (i.e. to remove old trackers) from the prior portion of the email thread. The hack here would be to trigger the &ldquo;Show trimmed content&rdquo; button so that the full contents of the thread are downloaded.</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/trimmed-content.png" title="&#34;Show trimmed content&#34; button for downloading the entire thread" alt="&#34;Show trimmed content&#34; button for downloading the entire thread"></p>
+
+<p>Now that we are successfully able to track sent messages using our Chrome extension, I needed away for the sender of the email to see that their messages had been opened. I first added a UI element to the Inbox view that shows when the last email was opened:
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-toolbar.png" title="A tracking info button added to the toolbar on the Inbox" ></p>
+
+<p>and when clicked opens a modal with a list of the most recent message opens. Clicking on any of the them directly opens the relevant thread:</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-tracking-dialog.png" title="A list of recent email opens that can be clicked" ></p>
+
+<p>On the thread view, I also added a button to the toolbar:</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-toolbar.png" title="A tracking info button added to the toolbar on the Thread view" ></p>
+
+<p>which when clicked also opens a modal showing all of the views of the current thread along with additional information:</p>
+
+<p><img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-tracking-dialog.png" title="Each View of the current Thread is shown along with additional information" ></p>
+
+<p>Another challenge I faced was being able to use React for developing my UI. Unfortunately gmail-js uses jQuery (and has an imperative API) and the Gmail page itself likes to kill, and then rebuild, the toolbar when it wants. I was able to work around this with a combination of <code>MutationObserver</code> and <code>unmountComponentAtNode</code> (<a href="https://github.com/cancan101/email-tracking-extension/blob/838e32ed614ed54767be73dd773c8f73aae54767/src/gmailJsLoader.ts#L164-L202">see code</a>). I was then able to use the <a href="https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi">React Developer Tools</a> to confirm that I was not leaking React Elements.</p>
+
+<h4>Preventing &ldquo;self-Views&rdquo;</h4>
+
+<p>The Chrome extension is also responsible for making sure that the sender doesn&rsquo;t trigger their own View event each time they open their sent email message. There are two ways to handle this: one is to prevent the image from being loaded at all by the sender&rsquo;s agent. The other would be to add logic on the backend to detect and then exclude these loads. I chose the former option, as due to privacy limitations, identifying the sender&rsquo;s loads of the image proved impractical. Ideally if both the sender and recipient are users of my email tracking system, I <em>do</em> want the view event to trigger when the recipient opens the email message, even if they have the extension installed.</p>
+
+<p>The simplest way to block the loads, and the way the other extensions I looked at<sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup> accomplished this was using the <code>webRequestBlocking</code> permission as part of the <a href="https://developer.chrome.com/docs/extensions/reference/webRequest/"><code>webRequest</code></a>. Unfortunately thus functionality was <a href="https://gourav.io/blog/block-api-requests-chrome-extension">removed in Manifest V3</a> and replaced with <code>declarativeNetRequest</code>.</p>
+
+<p>Instead of figuring out how to use the new API, I decided to use injected CSS to prevent the image from being downloaded. I also think the rules for <code>declarativeNetRequest</code> are static and thus cannot be customized based upon the logged in user (i.e. the blocking would prevent any images uses by this tracking system from loading, not just those sent by the specific sender). Instead I am able to generate a CSS rule dynamically that excludes images sent by just the sender. Even though <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors#syntax">CSS doesn&rsquo;t seem to have a regex rule</a>, I am able to use a string match to accomplish this. I ended up using a <code>div</code> tag with a <code>background-image</code> rather than a standard <code>img</code> tag. I could not get the CSS to work to prevent the browser from downloading the image file when using the <code>img</code> tag.</p>
+
+<p>This is the CSS rule that gets injected:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nt">div</span><span class="o">[</span><span class="nt">style</span><span class="o">*=</span><span class="s2">&quot;__BACKEND_URL__/t/__SENDER_ID__/&quot;</span><span class="o">][</span><span class="nt">style</span><span class="o">*=</span><span class="s2">&quot;image.gif&quot;</span><span class="o">][</span><span class="nt">height</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="o">][</span><span class="nt">width</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="o">]</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">display</span><span class="o">:</span> <span class="k">none</span> <span class="cp">!important</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Backend Server</h3>
+
+<p>Stay tuned for Part 2, where I go into more depth on the Backend Server.</p>
+
+<p>The TL; DR, is that the server has a few key end points:</p>
+
+<ol>
+<li>Recording an email send (REST / JSON)</li>
+<li>Tracking pixel with a route per-sender (e.g. <code>/t/&lt;sender-id&gt;/&lt;tracker-id&gt;/image.gif</code>) returning the smallest possible valid GIF image and returning as quickly as possible</li>
+<li>Login endpoints. I use a <a href="https://workos.com/blog/a-guide-to-magic-links">magic link system</a> that sends an email with a login link</li>
+<li>Various RESTful endpoints for the UI to display the state of tracking</li>
+</ol>
+
+
+<p>(2) captures the requester&rsquo;s IP and User Agent string and then involves running through a series of rules and calls to third party APIs to gather information on the requester.</p>
+
+<h3>Google Apps Script (Gmail Addon)</h3>
+
+<p>Stay tuned for subsequent posts!</p>
+
+<!-- Keep -->
+
+
+
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>This same technique is also used <a href="https://en.wikipedia.org/wiki/Web_beacon">on webpages</a> and known a &ldquo;web beacon&rdquo;.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>This assume the email client supports HTML and the user has not disabled loading images (e.g. <a href="https://support.google.com/mail/answer/145919">on Gmail</a>). <a href="https://useplaintext.email/">There are those that lobby for using plaintext email</a>.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p><a href="https://sendloop.com/articles/the-effect-of-gmail-image-proxy-to-email-marketers/">Gmail</a> and other email services proxy the image so the actual IP address and User Agent are not revealed to the server.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>A number of the dependencies are out of date leading to various <a href="https://github.com/lxieyang/chrome-extension-boilerplate-react/issues/121">security warnings</a> on GitHub. Further <code>npm dedupe</code> should be run to simplify and speed up the install.<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<li id="fn:5">
+<p>The limitation is due to how gmail-js subscribes to XHR events and limitations due to security-context / namespaces (<a href="https://github.com/KartikTalwar/gmail.js/issues/274#issuecomment-485352614">see discussion</a>).<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
+<li id="fn:6">
+<p>I found <a href="https://crxextractor.com/">CRX Extractor</a> super helpful in getting access to the source for other extensions in the Chrome Web Store<a href="#fnref:6" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Alex Rothberg</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-09-14T00:26:00-04:00" pubdate data-updated="true">Sep 14<span>th</span>, 2022</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/software-project/'>software-project</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/" data-via="rothbergwrites" data-counturl="http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2022/05/18/creating-sqlalchemy-dialect-for-airtable/" title="Previous Post: Creating a SQLAlchemy Dialect for Airtable">&laquo; Creating a SQLAlchemy Dialect for Airtable</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2022/09/14/building-an-email-tracking-system-p1/">Building an Email Open Tracking System - Part 1</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2022/05/18/creating-sqlalchemy-dialect-for-airtable/">Creating a SQLAlchemy Dialect for Airtable</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2022/03/09/running-superset-against-graphql/">Running Apache Superset Against a GraphQL API</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2014/05/15/map-recognition/">Map Recognition</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2014/05/14/octopress-paper-cuts/">Octopress Paper Cuts</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>About Me</h1>
+  <p>
+    I graduated MIT in 2009 with degrees in Computer Science and Economics.<br>
+    I then traded US equities, futures, and options from 2009&ndash;2014 with <a href="https://en.wikipedia.org/wiki/KCG_Holdings">KCG</a> / <a href="https://en.wikipedia.org/wiki/Global_Electronic_Trading_Company">GETCO</a>.<br>
+    From 2014&ndash;2018 I worked at <a href="https://www.butterflynetwork.com">Butterfly Network</a> (on machine learning + web dev)<br>
+    In 2018 I joined CompIQ / Stella.ai as VP of Engineering<br>
+    and since 2019 have been at <a href="https://www.freeagency.com">Free Agency</a> (as Co-founder / CTO).
+  </p>
+  
+    <p><a target="_blank" rel="noopener" href="https://www.linkedin.com/in/alex-g-rothberg/">My LinkedIn &raquo;</a></p>
+  
+  
+    <p><a target="_blank" rel="noopener" href="https://stackoverflow.com/u/2638485/">My Stack Overflow &raquo;</a></p>
+  
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a target="_blank" rel="noopener" href="https://github.com/cancan101">@cancan101</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'cancan101',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2022 - Alex Rothberg -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alexrothberg';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/';
+        var disqus_url = 'http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
