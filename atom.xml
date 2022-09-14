@@ -4,7 +4,7 @@
   <title><![CDATA[Rothberg Writes]]></title>
   <link href="https://blog.alexrothberg.com/atom.xml" rel="self"/>
   <link href="https://blog.alexrothberg.com/"/>
-  <updated>2022-09-14T01:30:46-04:00</updated>
+  <updated>2022-09-14T01:34:36-04:00</updated>
   <id>https://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
@@ -781,7 +781,7 @@ def show_bw(bw):
 <!-- more -->
 
 
-<p>The guide <a href="http://octopress.org/docs/setup/">here</a> does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions <a href="http://octopress.org/docs/deploying/github/#custom_domains">here</a> to create a CNAME file and then <a href="http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames">adding a simple &ldquo;CNAME Record&rdquo; (an alias) on GoDaddy</a> was all it took for <a href="http://blog.alexrothberg.com">blog.alexrothberg.com</a> to direct to <a href="http://cancan101.github.io">cancan101.github.io</a>.</p>
+<p>The guide <a href="http://octopress.org/docs/setup/">here</a> does a great job of explaining setting up Octopress on GitHub. While I am using GitHub to host the static content I wanted to use my own custom domain. Following the instructions <a href="http://octopress.org/docs/deploying/github/#custom_domains">here</a> to create a CNAME file and then <a href="http://support.godaddy.com/help/article/680/managing-dns-for-your-domain-names#cnames">adding a simple &ldquo;CNAME Record&rdquo; (an alias) on GoDaddy</a> was all it took for <code>blog.alexrothberg.com</code> to direct to <code>cancan101.github.io</code>.</p>
 
 <h3><a name="blog-path"></a>Simplifying the URL</h3>
 
