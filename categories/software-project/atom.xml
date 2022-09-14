@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Software-project | Rothberg Writes]]></title>
+  <link href="http://blog.alexrothberg.com/categories/software-project/atom.xml" rel="self"/>
+  <link href="http://blog.alexrothberg.com/"/>
+  <updated>2022-09-14T00:32:46-04:00</updated>
+  <id>http://blog.alexrothberg.com/</id>
+  <author>
+    <name><![CDATA[Alex Rothberg]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Building an Email Open Tracking System - Part 1]]></title>
+    <link href="http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1/"/>
+    <updated>2022-09-14T00:26:00-04:00</updated>
+    <id>http://blog.alexrothberg.com/2022/09/14/building-an-email-tracking-system-p1</id>
+    <content type="html"><![CDATA[I develop a system for tracking email "opens," which allows the sender of an email message to know when their message is opened (read) by the recipient(s). The system comprises (1) a Chrome extension that adds functionality to the Gmail website, (2) a backend server that tracks the email sends and then the subsequent opens, and (3) an addon for the mobile (Android / iOS) Gmail apps.
+
+<!-- more -->
+
+Want to know when someone opens your emails? How about knowing _each_ time someone opens an email you sent? In the era of iMessage or WhatsApp, where the concept of ["left on read"](https://www.dictionary.com/e/slang/left-on-read/) has entered the common lexicon, tracking the "when" of your message being read is near and dear to our hearts. Email clients, such as Outlook, have offered have offered ["read-receipts" (technically MDN - Message Disposition Notifications)](https://en.wikipedia.org/wiki/Email_tracking#Read-receipts) since as far back as 1998 (see [original RFC](https://datatracker.ietf.org/doc/html/rfc2298)). Read receipts rely on the recipient's agent (email client) supporting the feature and opting-in.
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/doc-outlook-block-tracking-read-receipt-4.png" title="Dialog asking recipient if they are okay sending a read receipt" >
+
+An alternative that has existed for a while but has recently become more popular is the ["tracker pixel"](https://en.wikipedia.org/wiki/Spy_pixel) (known less affectionately as the "spy pixel"). This technique involves putting a small (think 1x1) pixel in the HTML body of the email[^or-webpage]. The user's agent will in general[^email-open] load the image when the email message is opened. The server delivering the image is able to record the image access along with the [User Agent string](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent) and IP of the requesting client[^gmail-privacy].
+
+I set out to build an email open tracking system that employs a tracking pixel approach. I assume the sender uses Gmail / Google Workspace (fka GSuite) and accesses the site through Chrome (later I expand to the mobile Apps). No such requirements are imposed on the recipient. There are of course already a number of Extensions in the Chrome Web Store that offer this functionality such as [Mailtrack](https://chrome.google.com/webstore/detail/email-tracker-for-gmail-m/ndnaehgpjlnokgebbaldlmgkapkpjkkb) and [Yesware](https://chrome.google.com/webstore/detail/yesware-for-chrome/gkjnkapjmjfpipfcccnjbjcbgdnahpjp); however, both as a challenge to myself and because of privacy concerns I decided build my own.
+
+The system boils down to 3 parts:
+
+1. Injecting the HTML for the tracker pixel into the message body on email send
+2. Capturing the "view" events when the recipient's agent renders the email (i.e. the recipient reads / opens the email)
+3. Presenting those "view" events to the the sender
+
+I built parts (1) and (3) using a [Chrome extension](https://developer.chrome.com/docs/extensions/) that modifies the UI of the Gmail webpage. Part (3) was built using a server that served up a minimal pixel that could be tied to the email it was inserted into, while at the same time capturing information on the the client. I later re-built parts (1) and (3) using a [Google Apps Script](https://developers.google.com/apps-script/add-ons/gmail) so that I was able to send and see the email open tracking from within the a Gmail mobile app.
+
+## Implementation
+
+The repos for the components can be found here:
+
+1. [Chrome Extension](https://github.com/cancan101/email-tracking-extension)
+2. [Server](https://github.com/cancan101/email-tracking-api)
+3. [Google Apps Script (Gmail Addon)](https://github.com/cancan101/email-tracking-gmail-addon)
+
+### Chrome Extension
+
+The Chrome extension needs to (1) modify, as needed, the body of email messages as sent, (2) provide a UI for the sender to control when tracking occurs, (3) display when previously tracked messages are opened, and (4) prevent self-tracks (i.e. we want to exclude our _own_ opens of an email from being counted as a view).
+
+I leveraged [this boilerplate project](https://github.com/lxieyang/chrome-extension-boilerplate-react) to get started developing my Chrome extension using TypeScript, React, and Webpack. After I had already built for a while, I did realize the project is no longer maintained[^old-deps] and there are probably better starters out there now (e.g. [1](https://github.com/chibat/chrome-extension-typescript-starter) or [2](https://github.com/Godiswill/cra-crx-boilerplate)). Fortunately the project had been updated to use [Manifest V3](https://developer.chrome.com/docs/extensions/mv3/intro/), which while [more limited in functionality than V2](https://adguard.com/en/blog/how-ad-blocking-is-done.html) will be needed as [V2 is being deprecated in 2023](https://developer.chrome.com/docs/extensions/mv3/mv2-sunset/).
+
+I then found [gmail-js](https://github.com/KartikTalwar/gmail.js), which is a library purpose built for browser extensions that look to interface with the Gmail page. It offers functions to modify the UI (e.g. inserting buttons on the compose window and modifying the toolbars) as well as hooks for various events (e.g. a message being sent). The library is under active development, well documented, and supports TypeScript. It also has a [great boilerplate project](https://github.com/josteink/gmailjs-node-boilerplate) to help get started. When looking for other libraries to help with building a browser extension for Gmail, I also found [InboxSDK](https://www.inboxsdk.com/), a commercial offering similar to gmail-js, but with more of a focus on extending the Gmail UI. Ultimately gmail-js offered enough functionality for extending the UI that InboxSDK was unnecessary.
+
+There are some limitations in gmail-js that I had to work around. The first limitation, stated right in the README, is that "Gmail.js does not work as a content-script." [From the Chrome docs](https://developer.chrome.com/docs/extensions/mv3/content_scripts/): "Content scripts are files that run in the context of web pages." Basically content scripts are standard (and simplest) way an extension injects JavaScript into a webpage. And unfortunately they don't work with gmail-js[^script-tag]. An example workaround is shown in the boilerplate project and involves a [content script that inserts a script tag to then download the _actual_ js code](https://github.com/josteink/gmailjs-node-boilerplate/blob/6a194cc21a44f7e0da4e6f8951625f28f9859a17/src/extensionInjector.js).
+
+The next limitation that I ran into was that even though there was a [`before` send hook](https://github.com/KartikTalwar/gmail.js#gmailobservebeforeaction-callback) for email message, there is no way from within that hook to actually modify the body of the message. From the docs, it seems like this functionality used to exist. Unfortunately, due to changes on with Gmail page, there was no longer a way to modify the message as it is sent. The workaround here is to [modify the body of the email message _before_ the Gmail send button is "clicked."](https://github.com/KartikTalwar/gmail.js/issues/479#issuecomment-445751298) This can be done either by eagerly inserting the HTML into the body of the message when the compose window is first opened or by "proxying" the button click with a new button that runs the injection code and _then_ calls the original button ([using the `send` method](https://github.com/KartikTalwar/gmail.js#gmaildomcomposecompose_el)). The proxy button ([created using `add_compose_button`](https://github.com/KartikTalwar/gmail.js#gmailtoolsadd_compose_buttoncompose_ref-content_html-onclick_action-custom_style_class)) may be a totally new button or it might just be made to obscure the original button. I opted for the latter which has the benefit of providing an UI fo the user to choose to track vs not track.
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-window.png" title="A new &#34;Track&#34; button is added to the Compose Window" alt="A new &#34;Track&#34; button is added to the Compose Window">
+
+I used a similar approach to extend the "Scheduled send" button:
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/compose-more-menu.png" title="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window" alt="A new &#34;Scheduled Track&#34; button is added to the &#34;More&#34; menu on the Send Button on Compose Window">
+
+The flow for sending a tracked message now looks like:
+
+1. User opens Compose window (either for a new message or a reply)
+2. An alternative "Send" button is injected (the red "Track" button in the image above)
+3. User composes email message normally
+4. Upon clicking the alternative Send button, a tracking image (with a unique `id`) is injected into the email body (as additional HTML). We may also want to remove / modify old trackers (i.e. by removing HTML).
+5. When the email is eventually sent (some time after (4)), the `id` for the tracker is sent to our server.
+
+The last limitation is that there is no easy way to modify the contents of the prior messages in the compose window. In other words, while I can insert HTML into the current message, I cannot access (i.e. to remove old trackers) from the prior portion of the email thread. The hack here would be to trigger the "Show trimmed content" button so that the full contents of the thread are downloaded.
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/trimmed-content.png" title="&#34;Show trimmed content&#34; button for downloading the entire thread" alt="&#34;Show trimmed content&#34; button for downloading the entire thread">
+
+Now that we are successfully able to track sent messages using our Chrome extension, I needed away for the sender of the email to see that their messages had been opened. I first added a UI element to the Inbox view that shows when the last email was opened:
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-toolbar.png" title="A tracking info button added to the toolbar on the Inbox" >
+
+and when clicked opens a modal with a list of the most recent message opens. Clicking on any of the them directly opens the relevant thread:
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/inbox-tracking-dialog.png" title="A list of recent email opens that can be clicked" >
+
+On the thread view, I also added a button to the toolbar:
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-toolbar.png" title="A tracking info button added to the toolbar on the Thread view" >
+
+which when clicked also opens a modal showing all of the views of the current thread along with additional information:
+
+<img src="/images/post_images/2022-09-14-building-an-email-tracking-system-p1/thread-tracking-dialog.png" title="Each View of the current Thread is shown along with additional information" >
+
+Another challenge I faced was being able to use React for developing my UI. Unfortunately gmail-js uses jQuery (and has an imperative API) and the Gmail page itself likes to kill, and then rebuild, the toolbar when it wants. I was able to work around this with a combination of `MutationObserver` and `unmountComponentAtNode` ([see code](https://github.com/cancan101/email-tracking-extension/blob/838e32ed614ed54767be73dd773c8f73aae54767/src/gmailJsLoader.ts#L164-L202)). I was then able to use the [React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) to confirm that I was not leaking React Elements.
+
+#### Preventing "self-Views"
+
+The Chrome extension is also responsible for making sure that the sender doesn't trigger their own View event each time they open their sent email message. There are two ways to handle this: one is to prevent the image from being loaded at all by the sender's agent. The other would be to add logic on the backend to detect and then exclude these loads. I chose the former option, as due to privacy limitations, identifying the sender's loads of the image proved impractical. Ideally if both the sender and recipient are users of my email tracking system, I _do_ want the view event to trigger when the recipient opens the email message, even if they have the extension installed.
+
+The simplest way to block the loads, and the way the other extensions I looked at[^peek-extension] accomplished this was using the `webRequestBlocking` permission as part of the [`webRequest`](https://developer.chrome.com/docs/extensions/reference/webRequest/). Unfortunately thus functionality was [removed in Manifest V3](https://gourav.io/blog/block-api-requests-chrome-extension) and replaced with `declarativeNetRequest`.
+
+Instead of figuring out how to use the new API, I decided to use injected CSS to prevent the image from being downloaded. I also think the rules for `declarativeNetRequest` are static and thus cannot be customized based upon the logged in user (i.e. the blocking would prevent any images uses by this tracking system from loading, not just those sent by the specific sender). Instead I am able to generate a CSS rule dynamically that excludes images sent by just the sender. Even though [CSS doesn't seem to have a regex rule](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors#syntax), I am able to use a string match to accomplish this. I ended up using a `div` tag with a `background-image` rather than a standard `img` tag. I could not get the CSS to work to prevent the browser from downloading the image file when using the `img` tag.
+
+This is the CSS rule that gets injected:
+
+```css
+div[style*="__BACKEND_URL__/t/__SENDER_ID__/"][style*="image.gif"][height="1"][width="1"] {
+  display: none !important;
+}
+```
+
+### Backend Server
+
+Stay tuned for Part 2, where I go into more depth on the Backend Server.
+
+The TL; DR, is that the server has a few key end points:
+
+1. Recording an email send (REST / JSON)
+2. Tracking pixel with a route per-sender (e.g. `/t/<sender-id>/<tracker-id>/image.gif`) returning the smallest possible valid GIF image and returning as quickly as possible
+3. Login endpoints. I use a [magic link system](https://workos.com/blog/a-guide-to-magic-links) that sends an email with a login link
+4. Various RESTful endpoints for the UI to display the state of tracking
+
+(2) captures the requester's IP and User Agent string and then involves running through a series of rules and calls to third party APIs to gather information on the requester.
+
+### Google Apps Script (Gmail Addon)
+
+Stay tuned for subsequent posts!
+
+<!-- Keep -->
+
+[^email-open]: This assume the email client supports HTML and the user has not disabled loading images (e.g. [on Gmail](https://support.google.com/mail/answer/145919)). [There are those that lobby for using plaintext email](https://useplaintext.email/).
+[^gmail-privacy]: [Gmail](https://sendloop.com/articles/the-effect-of-gmail-image-proxy-to-email-marketers/) and other email services proxy the image so the actual IP address and User Agent are not revealed to the server.
+[^or-webpage]: This same technique is also used [on webpages](https://en.wikipedia.org/wiki/Web_beacon) and known a "web beacon".
+[^old-deps]: A number of the dependencies are out of date leading to various [security warnings](https://github.com/lxieyang/chrome-extension-boilerplate-react/issues/121) on GitHub. Further `npm dedupe` should be run to simplify and speed up the install.
+[^script-tag]: The limitation is due to how gmail-js subscribes to XHR events and limitations due to security-context / namespaces ([see discussion](https://github.com/KartikTalwar/gmail.js/issues/274#issuecomment-485352614)).
+[^peek-extension]: I found [CRX Extractor](https://crxextractor.com/) super helpful in getting access to the source for other extensions in the Chrome Web Store
+]]></content>
+  </entry>
+  
+</feed>
