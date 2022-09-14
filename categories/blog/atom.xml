@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Blog | Rothberg Writes]]></title>
-  <link href="http://blog.alexrothberg.com/categories/blog/atom.xml" rel="self"/>
-  <link href="http://blog.alexrothberg.com/"/>
-  <updated>2022-09-14T00:35:44-04:00</updated>
-  <id>http://blog.alexrothberg.com/</id>
+  <link href="https://blog.alexrothberg.com/categories/blog/atom.xml" rel="self"/>
+  <link href="https://blog.alexrothberg.com/"/>
+  <updated>2022-09-14T01:30:46-04:00</updated>
+  <id>https://blog.alexrothberg.com/</id>
   <author>
     <name><![CDATA[Alex Rothberg]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Octopress Paper Cuts]]></title>
-    <link href="http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/"/>
+    <link href="https://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts/"/>
     <updated>2014-05-14T09:16:22-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts</id>
+    <id>https://blog.alexrothberg.com/2014/05/14/octopress-paper-cuts</id>
     <content type="html"><![CDATA[Now that I have started writing a few blog posts, I have come across a few ["paper cuts"](https://en.wikipedia.org/wiki/Paper_cut_bug) with the (current) Octopress framework. Some quick background on Octopress: I am currently running the v2.0 version of Octopress which appears to have been released in [July 2011](http://octopress.org/2011/07/23/octopress-20-surfaces/). According to [this blog](http://sasheldon.com/blog/2013/07/07/waiting-for-octopress-2-successor/), the v2.1 version was scrapped in favor of a more significant v3.0. From the [Twitter feed](https://twitter.com/octopress) and the [GitHub page](https://github.com/octopress/octopress), v3.0 seems to be in active development but not yet released. That leaves me with using v2.0 for the time being.
 
 <blockquote class="twitter-tweet" lang="en"><p><a href="https://twitter.com/amesbah">@amesbah</a> The current release is a bit neglected right now. The next version is being worked on quite a bit though. <a href="https://t.co/a3cogy8z2O">https://t.co/a3cogy8z2O</a></p>&mdash; Octopress (@octopress) <a href="https://twitter.com/octopress/statuses/466799796465184768">May 15, 2014</a></blockquote>
@@ -88,9 +88,9 @@ I doubt these will be the last of the paper cuts that I uncover, so stay tuned f
   
   <entry>
     <title type="html"><![CDATA[Hello World!]]></title>
-    <link href="http://blog.alexrothberg.com/2014/05/13/hello-world/"/>
+    <link href="https://blog.alexrothberg.com/2014/05/13/hello-world/"/>
     <updated>2014-05-13T00:56:09-04:00</updated>
-    <id>http://blog.alexrothberg.com/2014/05/13/hello-world</id>
+    <id>https://blog.alexrothberg.com/2014/05/13/hello-world</id>
     <content type="html"><![CDATA[This is my [inaugural, requisite](https://en.wikipedia.org/wiki/Hello_world_program) post on my personal blog.
 
 I have chosen to run my blog with [Octopress](http://octopress.org/) rather than WordPress or Blogger. Why? [This blogger](http://decodize.com/html/moving-from-wordpress-to-octopress/) and [this blogger](http://blog.zerilliworks.net/blog/2013/03/16/why-octopress/) do a good job of explaining. Not only does Octopress allow me to source control the entire blog, but also lets me very easily host the site using [GitHub Pages](https://pages.github.com/). 
