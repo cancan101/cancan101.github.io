@@ -105,17 +105,17 @@
 
 <div class="entry-content"><p>I wanted to write a program to identify a map of a US state.</p>
 
-<p><img src="/images/post_images/2014-05-13-map-recognition/texas.png" width="105" height="110" title="Map of Texas" ></p>
+<p><img src="/images/post_images/2014-05-13-map-recognition/texas.png" width="105" height="110" title="Map of Texas" alt="A black and white map of the state of Texas"></p>
 
 <p>To make life a little more challenging, this program had to work even if the maps are rotated and are no longer in the standard <a href="https://en.wikipedia.org/wiki/Map#Orientation_of_maps">&ldquo;North is up&rdquo; orientation</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. Further the map images may be off-center and rescaled:</p>
 
-<p><img src="/images/post_images/2014-05-13-map-recognition/texas-rotate.png" width="140" height="110" title="Map of Texas Rotated and Translated" ></p>
+<p><img src="/images/post_images/2014-05-13-map-recognition/texas-rotate.png" width="140" height="110" title="Map of Texas Rotated and Translated" alt="A black and white map of the state of Texas that has been rotated so that North is no longer up"></p>
 
 <h4>Data Set</h4>
 
-<p>The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to <a href="http://www.50states.com/us.htm">this page</a> which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website&rsquo;s URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.</p>
+<p>The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to <a href="https://www.50states.com/us.htm">this page</a> which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website&rsquo;s URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.</p>
 
-<p><img src="http://www.50states.com/maps/texas.gif" width="152" height="200" title="Original Texas Map" ></p>
+<p><img src="https://www.50states.com/maps/texas.gif" width="152" height="200" title="Original Texas Map" ></p>
 
 <!-- more -->
 
@@ -147,7 +147,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Next I tried to open one of these images using OpenCV&rsquo;s <code>imread</code> only to discover that OpenCV <a href="http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#imread">does not handle gifs</a> so I built this utility method to convert the GIF to PNG and then to read them with <code>imread</code>:</p>
+<p>Next I tried to open one of these images using OpenCV&rsquo;s <code>imread</code> only to discover that OpenCV <a href="https://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#imread">does not handle gifs</a> so I built this utility method to convert the GIF to PNG and then to read them with <code>imread</code>:</p>
 
 <div><script src='https://gist.github.com/80e27feaef8eae0ed921.js'></script>
 <noscript><pre><code>from PIL import Image
@@ -175,7 +175,7 @@ def load_gif_url(url):
 
 <ol>
 <li>Remove the text heading (strip off some number of rows from the top of each image).</li>
-<li>Convert &ldquo;color&rdquo; image to binary image (1=black, 0=white) (this will be <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours">required by <code>findContours</code></a>)</li>
+<li>Convert &ldquo;color&rdquo; image to binary image (1=black, 0=white) (this will be <a href="https://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours">required by <code>findContours</code></a>)</li>
 <li>Find the &ldquo;contours&rdquo; that bound areas we will fill in (i.e. identify the state outlines).</li>
 <li>Convert contours to polygons.</li>
 <li>Fill in area bounded by &ldquo;significant&rdquo; polygons.</li>
@@ -291,13 +291,13 @@ def show_bw(bw):
 
 <p>How to normalize the image? <a href="https://en.wikipedia.org/wiki/Image_moment">Image moments</a> immediately came to mind. The zeroth moment is the &ldquo;mass&rdquo; of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling.</p>
 
-<p>The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an <a href="https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points">arithmetic average of black pixel coordinates</a>. The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an &ldquo;axis of orientation&rdquo; which I can used to normalize rotation. Wikipedia provides the <a href="https://en.wikipedia.org/wiki/Image_moment#Examples_2">answer</a> but a more complete explanation can be <a href="http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html">found here</a>.</p>
+<p>The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an <a href="https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points">arithmetic average of black pixel coordinates</a>. The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an &ldquo;axis of orientation&rdquo; which I can used to normalize rotation. Wikipedia provides the <a href="https://en.wikipedia.org/wiki/Image_moment#Examples_2">answer</a> but a more complete explanation can be <a href="https://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html">found here</a>.</p>
 
-<p>At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called <a href="https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments">&ldquo;rotation invariant moments&rdquo;</a>. These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments">Hu moments</a>. The Hu moments are the most frequently used, but <a href="http://library.utia.cas.cz/prace/20000033.pdf">Flusser shows there are superior choices</a>. For convenience I will use the seven Hu moments as feature values in a machine learning classifier.</p>
+<p>At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called <a href="https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments">&ldquo;rotation invariant moments&rdquo;</a>. These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the <a href="https://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments">Hu moments</a>. The Hu moments are the most frequently used, but <a href="http://library.utia.cas.cz/prace/20000033.pdf">Flusser shows there are superior choices</a>. For convenience I will use the seven Hu moments as feature values in a machine learning classifier.</p>
 
-<p>In order to classify the images using the seven feature values, I decided to use <a href="http://scikit-learn.org/">scikit-learn</a>&rsquo;s <a href="http://scikit-learn.org/stable/modules/svm.html#classification">SVM Classifier</a>. I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I <a href="http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf">made sure to scale my features</a>.</p>
+<p>In order to classify the images using the seven feature values, I decided to use <a href="https://scikit-learn.org/">scikit-learn</a>&rsquo;s <a href="https://scikit-learn.org/stable/modules/svm.html#classification">SVM Classifier</a>. I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I <a href="http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf">made sure to scale my features</a>.</p>
 
-<p>An SVM with a <code>linear</code> kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an &ldquo;rbf&rdquo; kernel and a default setting for <code>gamma</code> gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the <a href="http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double%20matchShapes(InputArray%20contour1,%20InputArray%20contour2,%20int%20method,%20double%20parameter)">OpenCV method <code>matchShapes</code></a> which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.</p>
+<p>An SVM with a <code>linear</code> kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an &ldquo;rbf&rdquo; kernel and a default setting for <code>gamma</code> gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the <a href="https://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double%20matchShapes(InputArray%20contour1,%20InputArray%20contour2,%20int%20method,%20double%20parameter)">OpenCV method <code>matchShapes</code></a> which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.</p>
 
 <p>I changed my features to be the signum&#8217;ed log of the absolute values of the Hu Moments, and then applied standard scaling. This log transform of the Hu moments is pretty common in the literature, see: <a href="http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf">Conley</a><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):</p>
 
@@ -309,11 +309,11 @@ def show_bw(bw):
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/blur.png" width="400" height="400" title="Blurring" ></p>
 
-<p>and a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur">Gaussian Blur</a>:</p>
+<p>and a <a href="https://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur">Gaussian Blur</a>:</p>
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/gblur.png" width="400" height="400" title="Gaussian Blurring" ></p>
 
-<p>My IPython Notebook is available <a href="http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
+<p>My IPython Notebook is available <a href="https://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
 
 <h3>Extensions</h3>
 
@@ -345,7 +345,7 @@ def show_bw(bw):
 <hr/>
 <ol>
 <li id="fn:1">
-<p>In reality, not only do I need to be concerned with <a href="http://docs.opencv.org/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html">scale, rotation, and translation</a>, but I also should care about the <a href="https://en.wikipedia.org/wiki/List_of_map_projections">map projection</a>.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<p>In reality, not only do I need to be concerned with <a href="https://docs.opencv.org/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html">scale, rotation, and translation</a>, but I also should care about the <a href="https://en.wikipedia.org/wiki/List_of_map_projections">map projection</a>.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
 <li id="fn:2">
 <p>&ldquo;To improve classification rates, the natural logarithm of the absolute value of the seven invariants are used instead of the invariants themselves, because the invariants often have very low absolute values (less than 0.001), so taking the logarithm of the invariants reduces the density of the invariants near the origin. Also, the values of the natural logarithms are then converted into standardized z-scores before classification&rdquo;<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 </ol>
