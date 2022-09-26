@@ -8,22 +8,26 @@ categories: image-recognition machine-learning
 description: I show identifying transformed US state maps.
 keywords: image recognition, machine learning, Hu moments, image moments, sklearn, SVM, scikit-learn
 ---
+
 I wanted to write a program to identify a map of a US state.
 
-{% img /images/post_images/2014-05-13-map-recognition/texas.png 105 110 Map of Texas %}
+{% img /images/post_images/2014-05-13-map-recognition/texas.png 105 110 "Map of Texas" "A black and white map of the state of Texas" %}
 
 To make life a little more challenging, this program had to work even if the maps are rotated and are no longer in the standard ["North is up" orientation](https://en.wikipedia.org/wiki/Map#Orientation_of_maps)[^projection]. Further the map images may be off-center and rescaled:
 
-[^projection]: In reality, not only do I need to be concerned with [scale, rotation, and translation](http://docs.opencv.org/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html), but I also should care about the [map projection](https://en.wikipedia.org/wiki/List_of_map_projections).
+[^projection]: In reality, not only do I need to be concerned with [scale, rotation, and translation](https://docs.opencv.org/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html), but I also should care about the [map projection](https://en.wikipedia.org/wiki/List_of_map_projections).
 
-{% img /images/post_images/2014-05-13-map-recognition/texas-rotate.png 140 110 Map of Texas Rotated and Translated %}
+{% img /images/post_images/2014-05-13-map-recognition/texas-rotate.png 140 110 "Map of Texas Rotated and Translated" "A black and white map of the state of Texas that has been rotated so that North is no longer up" %}
 
 ####Data Set
-The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to [this page](http://www.50states.com/us.htm) which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website's URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.
+The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to [this page](https://www.50states.com/us.htm) which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website's URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.
 
-{% img http://www.50states.com/maps/texas.gif 152 200 Original Texas Map %}
+{% img https://www.50states.com/maps/texas.gif 152 200 Original Texas Map %}
+
 <!-- more -->
+
 First some Python to get the list of all state names:
+
 ```python
 text = requests.get("http://www.50states.com/us.htm").text
 doc = lxml.html.document_fromstring(text)
@@ -38,13 +42,13 @@ def make_url(state):
     "return http://www.50states.com/maps/%s.gif" % state
 ```
 
-Next I tried to open one of these images using OpenCV's `imread` only to discover that OpenCV [does not handle gifs](http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#imread) so I built this utility method to convert the GIF to PNG and then to read them with `imread`:
+Next I tried to open one of these images using OpenCV's `imread` only to discover that OpenCV [does not handle gifs](https://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html#imread) so I built this utility method to convert the GIF to PNG and then to read them with `imread`:
 {% gist 80e27feaef8eae0ed921 %}
 
 With the images loaded, I believed the following operations should suffice to get my final, filled-in image:
 
 1.  Remove the text heading (strip off some number of rows from the top of each image).
-2.  Convert "color" image to binary image (1=black, 0=white) (this will be [required by `findContours`](http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours))
+2.  Convert "color" image to binary image (1=black, 0=white) (this will be [required by `findContours`](https://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html?highlight=findcontours#findcontours))
 3.  Find the "contours" that bound areas we will fill in (i.e. identify the state outlines).
 4.  Convert contours to polygons.
 5.  Fill in area bounded by "significant" polygons.
@@ -75,13 +79,13 @@ I needed some way of comparing two images which may have different rotations, sc
 
 How to normalize the image? [Image moments](https://en.wikipedia.org/wiki/Image_moment) immediately came to mind. The zeroth moment is the "mass" of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling.
 
-The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an [arithmetic average of black pixel coordinates](https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points). The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an "axis of orientation" which I can used to normalize rotation. Wikipedia provides the [answer](https://en.wikipedia.org/wiki/Image_moment#Examples_2) but a more complete explanation can be [found here](http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html).
+The first moment is the center of mass or the centroid of the image. Calculating the centroid is then an [arithmetic average of black pixel coordinates](https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points). The center of mass is a reference point and that allows me to normalize for translation of the image. Finally, I would like an "axis of orientation" which I can used to normalize rotation. Wikipedia provides the [answer](https://en.wikipedia.org/wiki/Image_moment#Examples_2) but a more complete explanation can be [found here](https://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/OWENS/LECT2/node3.html).
 
-At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called ["rotation invariant moments"](https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments). These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the [Hu moments](http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments). The Hu moments are the most frequently used, but [Flusser shows there are superior choices](http://library.utia.cas.cz/prace/20000033.pdf). For convenience I will use the seven Hu moments as feature values in a machine learning classifier.
+At this point I realized that rather than going through the trouble of standardizing the image and then comparing pixel-by-pixel, I could just compare a set of so-called ["rotation invariant moments"](https://en.wikipedia.org/wiki/Image_moment#Rotation_invariant_moments). These values are invariant for a given image under translation, scale and rotation. OpenCV provides a function to calculate the [Hu moments](https://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#humoments). The Hu moments are the most frequently used, but [Flusser shows there are superior choices](http://library.utia.cas.cz/prace/20000033.pdf). For convenience I will use the seven Hu moments as feature values in a machine learning classifier.
 
-In order to classify the images using the seven feature values, I decided to use [scikit-learn](http://scikit-learn.org/)'s [SVM Classifier](http://scikit-learn.org/stable/modules/svm.html#classification). I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I [made sure to scale my features](http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf).
+In order to classify the images using the seven feature values, I decided to use [scikit-learn](https://scikit-learn.org/)'s [SVM Classifier](https://scikit-learn.org/stable/modules/svm.html#classification). I generated training data by taking each of the 50 state images, and then rotating, shifting and scaling them and then getting the Hu moments for the resulting image. I took this set of examples, split 20% out as test data and 80% for training. After observing that each of the seven features takes on very different ranges of values, I [made sure to scale my features](http://www.vis.caltech.edu/~graf/my_papers/proceedings/GraBor01.pdf).
 
-An SVM with a `linear` kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an "rbf" kernel and a default setting for `gamma` gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the [OpenCV method `matchShapes`](http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double matchShapes(InputArray contour1, InputArray contour2, int method, double parameter\)) which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.
+An SVM with a `linear` kernel resulted in 31% classification accuracy. This is certainly better than the 2% I would get from blind guessing but a long way from what a gifted elementary school student would get after studying US geography. Using an "rbf" kernel and a default setting for `gamma` gives an accuracy of 20%. With some tweaking to gamma, I was able to get this up to 99%, but this required a gamma=10000. Having this large a gamma made me question my approach. I reviewed the [OpenCV method `matchShapes`](https://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#double matchShapes(InputArray contour1, InputArray contour2, int method, double parameter\)) which also uses the Hu Moments. I noticed that rather than just comparing the Hu Moments, the OpenCV method instead compared the log of the moments.
 
 I changed my features to be the signum'ed log of the absolute values of the Hu Moments, and then applied standard scaling. This log transform of the Hu moments is pretty common in the literature, see: [Conley](http://www.geocomputation.org/2007/7C-Spatial_statistics_3/7C2.pdf)[^conley]. After doing that my linear kernel SVM was able to achieve a score of 100%. An rbf kernel with default gamma got a score of 99% (looking at the confusion matrix shows some confusion between Utah vs. Arizona and Georgia vs. Missouri, which do look similar):
 
@@ -94,14 +98,15 @@ While not part of the original problem specification, I wanted to see how this c
 
 {% img /images/post_images/2014-05-13-map-recognition/blur.png 400 400 Blurring %}
 
-and a [Gaussian Blur](http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur):
+and a [Gaussian Blur](https://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=gaussianblur#gaussianblur):
 
 {% img /images/post_images/2014-05-13-map-recognition/gblur.png 400 400 Gaussian Blurring %}
 
-My IPython Notebook is available [here](http://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127).
+My IPython Notebook is available [here](https://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127).
 
 ###Extensions
 It would be cool to evaluate this same technique on maps of countries. I have found two source of country maps: [this](http://www.aneki.com/maps_blank/) and [this](http://www.worldatlas.com/sitemap.xml). Using the second link, the URLs for the country pages can be extracted using:
+
 ```python
 text = requests.get("http://www.worldatlas.com/sitemap.xml").text
 el = lxml.etree.fromstring(str(text))
