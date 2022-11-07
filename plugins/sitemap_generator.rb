@@ -119,6 +119,7 @@ module Jekyll
 
       @last_modified_post_date = fill_posts(site, urlset)
       fill_pages(site, urlset)
+      fill_categories(site, urlset)
 
       sitemap.add_element(urlset)
 
@@ -168,6 +169,33 @@ module Jekyll
             urlset.add_element(url)
           end
         end
+      end
+    end
+
+    def fill_categories(site, urlset)
+      dir = site.config['category_dir'] || 'categories'
+      site.categories.keys.each do |category|
+        category_dir = File.join("/", dir, category.to_url, "/")
+        location = "#{site.config['url']}#{category_dir}index.html"
+        location = location.gsub(/index.html$/, "")
+
+        loc = REXML::Element.new "loc"
+        loc.text = location
+
+        url = REXML::Element.new "url"
+
+        url.add_element(loc)
+
+        lastmod = REXML::Element.new "lastmod"
+
+        # TODO(cancan101): crawl over the elements in the category
+        final_date = @last_modified_post_date
+        lastmod.text = final_date.iso8601
+
+        url.add_element(lastmod) if lastmod
+
+        urlset.add_element(url)
+
       end
     end
 
@@ -309,4 +337,3 @@ module Jekyll
     end
   end
 end
-
