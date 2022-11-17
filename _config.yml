@@ -75,7 +75,7 @@ github_skip_forks: true
 
 # Twitter
 twitter_user: rothbergwrites
-twitter_tweet_button: false
+twitter_tweet_button: true
 
 # Google +1
 google_plus_one: false
@@ -102,7 +102,7 @@ disqus_show_comment_count: false
 google_analytics_tracking_id: UA-50927313-2
 
 # Facebook Like
-facebook_like: false
+facebook_like: true
 
 linkedin_user: alex-g-rothberg
 
