@@ -9,6 +9,8 @@ description: I show identifying transformed US state maps.
 keywords: image recognition, machine learning, Hu moments, image moments, sklearn, SVM, scikit-learn
 ---
 
+## The Challenge
+
 I wanted to write a program to identify a map of a US state.
 
 {% img /images/post_images/2014-05-13-map-recognition/texas.png 105 110 "Map of Texas" "A black and white map of the state of Texas" %}
@@ -19,7 +21,7 @@ To make life a little more challenging, this program had to work even if the map
 
 {% img /images/post_images/2014-05-13-map-recognition/texas-rotate.png 140 110 "Map of Texas Rotated and Translated" "A black and white map of the state of Texas that has been rotated so that North is no longer up" %}
 
-####Data Set
+##Data Set
 The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to [this page](https://www.50states.com/us.htm) which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website's URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.
 
 {% img https://www.50states.com/maps/texas.gif 152 200 Original Texas Map %}
@@ -74,7 +76,7 @@ which works for all states:
 
 {% img /images/post_images/2014-05-13-map-recognition/states.png  Solid Fills US States %}
 
-####Image Recognition
+##Image Recognition
 I needed some way of comparing two images which may have different rotations, scalings and/or translations. My first thought was to develop a process that normalizes an image to a [canonical](https://en.wikipedia.org/wiki/Canonical_form) orientation, scaling and position. I could then take an unlabeled image, and compare its standardized form to my set of canonicalized maps pixel-by-pixel with some distance metric such as MAE or MSE.
 
 How to normalize the image? [Image moments](https://en.wikipedia.org/wiki/Image_moment) immediately came to mind. The zeroth moment is the "mass" of the image (actually the area of the image since I am working with black and white images, where the black pixels have unit mass and the white pixels to have no mass). The area can be used to normalize for image scaling.
@@ -93,7 +95,7 @@ I changed my features to be the signum'ed log of the absolute values of the Hu M
 
 {% img /images/post_images/2014-05-13-map-recognition/confusion-final.png  Confusion Matrix %}
 
-####Blurring
+##Blurring
 While not part of the original problem specification, I wanted to see how this classification technique would fare under image blurring. I show below classification scores as a function of increasing amounts of blur. Using a [normalized box filter](http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=blur#blur):
 
 {% img /images/post_images/2014-05-13-map-recognition/blur.png 400 400 Blurring %}
@@ -104,7 +106,7 @@ and a [Gaussian Blur](https://docs.opencv.org/modules/imgproc/doc/filtering.html
 
 My IPython Notebook is available [here](https://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127).
 
-###Extensions
+##Extensions
 It would be cool to evaluate this same technique on maps of countries. I have found two source of country maps: [this](http://www.aneki.com/maps_blank/) and [this](http://www.worldatlas.com/sitemap.xml). Using the second link, the URLs for the country pages can be extracted using:
 
 ```python
