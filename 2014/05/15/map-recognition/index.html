@@ -101,7 +101,9 @@
   </header>
 
 
-<div class="entry-content"><p>I wanted to write a program to identify a map of a US state.</p>
+<div class="entry-content"><h2>The Challenge</h2>
+
+<p>I wanted to write a program to identify a map of a US state.</p>
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/texas.png" width="105" height="110" title="Map of Texas" alt="A black and white map of the state of Texas"></p>
 
@@ -109,7 +111,7 @@
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/texas-rotate.png" width="140" height="110" title="Map of Texas Rotated and Translated" alt="A black and white map of the state of Texas that has been rotated so that North is no longer up"></p>
 
-<h4>Data Set</h4>
+<h2>Data Set</h2>
 
 <p>The first challenge was getting a set of 50 solid-filled maps, one for each of the states. Some Google searching around led to <a href="https://www.50states.com/us.htm">this page</a> which has outlined images for each state map. Those images have not just the outline of the state, but also text with the name of the state, the website&rsquo;s URL, a star showing the state capital and dots indicating what I assume are major cities. In order to standardize the images, I removed the text and filled in the outlines. The fill took care of the star and the dots.</p>
 
@@ -283,7 +285,7 @@ def show_bw(bw):
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/states.png" title="Solid Fills US States" ></p>
 
-<h4>Image Recognition</h4>
+<h2>Image Recognition</h2>
 
 <p>I needed some way of comparing two images which may have different rotations, scalings and/or translations. My first thought was to develop a process that normalizes an image to a <a href="https://en.wikipedia.org/wiki/Canonical_form">canonical</a> orientation, scaling and position. I could then take an unlabeled image, and compare its standardized form to my set of canonicalized maps pixel-by-pixel with some distance metric such as MAE or MSE.</p>
 
@@ -301,7 +303,7 @@ def show_bw(bw):
 
 <p><img src="/images/post_images/2014-05-13-map-recognition/confusion-final.png" title="Confusion Matrix" ></p>
 
-<h4>Blurring</h4>
+<h2>Blurring</h2>
 
 <p>While not part of the original problem specification, I wanted to see how this classification technique would fare under image blurring. I show below classification scores as a function of increasing amounts of blur. Using a <a href="http://docs.opencv.org/modules/imgproc/doc/filtering.html?highlight=blur#blur">normalized box filter</a>:</p>
 
@@ -313,7 +315,7 @@ def show_bw(bw):
 
 <p>My IPython Notebook is available <a href="https://nbviewer.ipython.org/gist/cancan101/d79cd7e230bf41f1c127">here</a>.</p>
 
-<h3>Extensions</h3>
+<h2>Extensions</h2>
 
 <p>It would be cool to evaluate this same technique on maps of countries. I have found two source of country maps: <a href="http://www.aneki.com/maps_blank/">this</a> and <a href="http://www.worldatlas.com/sitemap.xml">this</a>. Using the second link, the URLs for the country pages can be extracted using:</p>
 
