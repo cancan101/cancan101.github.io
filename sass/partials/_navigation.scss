@@ -21,7 +21,7 @@ body > nav {
       @include box-shadow(lighten($nav-bg, 2) 0 1px);
       background-color: lighten($nav-bg, 15);
       border: 1px solid $nav-border;
-      color: #888;
+      color: #666;
       &:focus {
         color: #444;
         border-color: #80b1df;
@@ -134,4 +134,3 @@ body > nav {
   a[rel=subscribe-rss]{ @include mask-subscription-nav('rss.png'); }
   a[rel=subscribe-email]{ @include mask-subscription-nav('email.png'); }
 }
-
