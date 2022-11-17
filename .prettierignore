@@ -1,2 +1,4 @@
 source/javascripts/libs/jquery.min.js
 .themes/classic/source/javascripts/libs/jquery.min.js
+
+source/javascripts/octopress.js
