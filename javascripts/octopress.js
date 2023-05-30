@@ -78,9 +78,16 @@ function renderDeliciousLinks(items) {
   $('#delicious').html(output);
 }
 
+function fixJQuery(){
+  jQuery.htmlPrefilter = function( html ) {
+    return html;
+  };
+}
+
 $('document').ready(function() {
   testFeatures();
   addCodeLineNumbers();
   getNav();
   addSidebarToggler();
+  fixJQuery();
 });
